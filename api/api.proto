@@ -168,10 +168,14 @@ message CreateClusterProviderSpec {
 
 // The credentials to use for creating the cluster
 message VMWareCredentials {
-    // The Username for API access
+    // The username for SSH access
     string username = 1;
-    // The Password for API access
-    string password = 2;
+    // The host for SSH access
+    string host = 2;
+    // The port for SSH access
+    string port = 3;
+    // The private key for SSH. This must be preconfigured on the VMWare instances
+    string private_key = 4;
 }
 
 message CreateClusterVMWareSpec {
