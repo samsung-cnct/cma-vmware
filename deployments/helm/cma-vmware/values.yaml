@@ -1,0 +1,23 @@
+# Default values.
+# This is a YAML-formatted file.
+# Declare name/value pairs to be passed into your templates.
+# name: value
+
+name: cma-vmware
+image:
+  repo: registry.gitlab.com/mvenezia/cma-vmware:master
+
+port: 80
+service:
+  port: 80
+  type: ClusterIP
+ingress:
+  rest:
+    name: cma-vmware
+    host: cma-vmware.ontario.cluster.cnct.io
+  grpc:
+    name: cma-vmware-grpc
+    host: cma-vmware-grpc.ontario.cluster.cnct.io
+issuer:
+  email: mvenezia@gmail.com
+  region: us-east-1

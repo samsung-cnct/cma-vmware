@@ -1,0 +1,31 @@
+---
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: {{ template "fullname" . }}
+  labels:
+    app: {{ template "fullname" . }}
+    chart: {{ template "chartname" . }}
+    release: "{{ .Release.Name }}"
+    heritage: "{{ .Release.Service }}"
+spec:
+  replicas: 1
+  template:
+    metadata:
+      name: {{ template "fullname" . }}
+      labels:
+        app: {{ template "fullname" . }}
+        release: "{{ .Release.Name }}"
+    spec:
+      serviceAccountName: {{ .Release.Name }}-serviceaccount
+      containers:
+      - name: {{ template "name" . }}
+        image: "{{.Values.image.repo}}"
+        imagePullPolicy: "Always"
+        ports:
+        - containerPort: {{.Values.service.port}}
+        env:
+        - name: CMAVMWARE_PORT
+          value: "{{.Values.service.port}}"
+        - name: CMAVMWARE_KUBERNETES_NAMESPACE
+          value: "{{ .Release.Namespace}}"

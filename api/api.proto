@@ -1,0 +1,212 @@
+// Copyright 2018 Samsung SDS Cloud Native Computing Team authors.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+// Michael Venezia <mvenezia@gmail.com>
+
+syntax = "proto3";
+
+package cmavmware;
+
+import "google/api/annotations.proto";
+import "protoc-gen-swagger/options/annotations.proto";
+
+
+option (grpc.gateway.protoc_gen_swagger.options.openapiv2_swagger) = {
+  info: {
+    title: "Cluster Manager VMWare Helper API";
+    version: "v0.1.0";
+    contact: {
+        name: "Michael Venezia";
+        url: "https://gitlab.com/mvenezia/cma-vmware";
+        email: "mvenezia@gmail.com";
+    };
+  };
+  external_docs: {
+    url: "https://gitlab.com/mvenezia/cma-vmware";
+    description: "More about Cluster Manager VMWare Helper API";
+  }
+  schemes: HTTPS;
+  schemes: HTTP;
+  consumes: "application/json";
+  produces: "application/json";
+};
+
+service Cluster {
+    // Will provision a cluster
+    rpc CreateCluster (CreateClusterMsg) returns (CreateClusterReply) {
+        option (google.api.http) = {
+            put : "/api/v1/cluster"
+            body : "*"
+        };
+    }
+    // Will retrieve the status of a cluster and its kubeconfig for connectivity
+    rpc GetCluster (GetClusterMsg) returns (GetClusterReply) {
+        option (google.api.http) = {
+            get : "/api/v1/cluster"
+        };
+    }
+    // Will delete a cluster
+    rpc DeleteCluster (DeleteClusterMsg) returns (DeleteClusterReply) {
+        option (google.api.http) = {
+            delete : "/api/v1/cluster"
+        };
+    }
+    // Will retrieve a list of clusters
+    rpc GetClusterList (GetClusterListMsg) returns (GetClusterListReply) {
+        option (google.api.http) = {
+            get : "/api/v1/cluster/list"
+        };
+    }
+    // Will return version information about api server
+    rpc GetVersionInformation (GetVersionMsg) returns (GetVersionReply) {
+        option (google.api.http) = {
+            get : "/api/v1/version"
+        };
+    }
+}
+
+message CreateClusterMsg {
+    // Name of the cluster to be provisioned
+    string name = 1;
+    // The provider specification
+    CreateClusterProviderSpec provider = 2;
+}
+
+message CreateClusterReply {
+    // Whether or not the cluster was provisioned by this request
+    bool ok = 1;
+    // The details of the cluster request response
+    ClusterItem cluster = 2;
+}
+
+message GetClusterMsg {
+    // Name of the cluster to be looked up
+    string name = 1;
+    // Credentials to query for the cluster
+    VMWareCredentials credentials = 2;
+}
+
+message GetClusterReply {
+    // Is the cluster in the system
+    bool ok = 1;
+
+    ClusterDetailItem cluster = 2;
+}
+
+message DeleteClusterMsg {
+    // What is the cluster's name to destroy
+    string name = 1;
+    // Credentials to delete the cluster
+    VMWareCredentials credentials = 2;
+}
+
+message DeleteClusterReply {
+    // Could the cluster be destroyed
+    bool ok = 1;
+    // Status of the request
+    string status = 2;
+}
+
+message GetClusterListMsg {
+    // Credentials to search subscription for clusters
+    VMWareCredentials credentials = 2;
+}
+
+message GetClusterListReply {
+    // Is the cluster in the system
+    bool ok = 1;
+    // List of clusters
+    repeated ClusterItem clusters = 2;
+}
+
+message ClusterItem {
+    // ID of the cluster
+    string id = 1;
+    // Name of the cluster
+    string name = 2;
+    // What is the status of the cluster
+    string status = 3;
+}
+
+message ClusterDetailItem {
+    // ID of the cluster
+    string id = 1;
+    // Name of the cluster
+    string name = 2;
+    // What is the status of the cluster
+    string status = 3;
+    // What is the kubeconfig to connect to the cluster
+    string kubeconfig = 4;
+}
+
+message CreateClusterProviderSpec {
+    // What is the provider - like vmware
+    string name = 1;
+    // The version of Kubernetes
+    string k8s_version = 2;
+
+    // The VMWare specification
+    CreateClusterVMWareSpec vmware = 3;
+
+    // Whether or not the cluster is HA
+    bool high_availability = 4;
+    // The fabric to be used
+    string network_fabric = 5;
+
+}
+
+// The credentials to use for creating the cluster
+message VMWareCredentials {
+    // The Username for API access
+    string username = 1;
+    // The Password for API access
+    string password = 2;
+}
+
+message CreateClusterVMWareSpec {
+    // Credentials to build the cluster
+    VMWareCredentials credentials = 1;
+}
+
+// Get version of API Server
+message GetVersionMsg {
+}
+
+// Reply for version request
+message GetVersionReply {
+    // If operation was OK
+    bool ok = 1;
+
+    message VersionInformation {
+        // The tag on the git repository
+        string git_version = 1;
+        // The hash of the git commit
+        string git_commit = 2;
+        // Whether or not the tree was clean when built
+        string git_tree_state = 3;
+        // Date of build
+        string build_date = 4;
+        // Version of go used to compile
+        string go_version = 5;
+        // Compiler used
+        string compiler = 6;
+        // Platform it was compiled for / running on
+        string platform = 7;
+    }
+
+    // Version Information
+    VersionInformation version_information = 2;
+}
+
+

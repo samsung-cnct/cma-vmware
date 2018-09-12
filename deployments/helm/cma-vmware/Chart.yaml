@@ -1,0 +1,14 @@
+name: cma-vmware
+version: 0.1.0
+description: The Cluster Manager API VMWare Helper
+keywords:
+- hybridstack
+- api
+home: https://gitlab.com/mvenezia/cma-vmware
+sources:
+- https://gitlab.com/mvenezia/cma-vmware
+maintainers:
+- name: Michael Venezia
+  email: mvenezia@gmail.com
+icon: https://github.com/samsung-cnct/solas/docs/images/samsung-logo.svg
+engine: gotpl
