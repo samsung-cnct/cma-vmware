@@ -177,8 +177,10 @@ message MachineSpec {
 }
 
 message CreateClusterVMWareSpec {
-    // Credentials to build the cluster
-    repeated MachineSpec machines = 1;
+    // This namespace along with the clustername with CreateClusterProviderSpec uniquely identify a managed cluster
+    string namespace = 1
+    // Machines which comprise the cluster
+    repeated MachineSpec machines = 2;
 }
 
 // Get version of API Server
