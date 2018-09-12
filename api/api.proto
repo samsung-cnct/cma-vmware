@@ -147,7 +147,7 @@ message ClusterDetailItem {
 message CreateClusterProviderSpec {
     // What is the provider - like vmware
     string name = 1;
-    // The version of Kubernetes
+    // The version of Kubernetes for worker nodes. Control plane versions are determined by the MachineSpec.
     string k8s_version = 2;
 
     // The VMWare specification
@@ -170,10 +170,8 @@ message MachineSpec {
     string port = 3;
     // The private key for SSH. This must be preconfigured on the VMWare instances
     string private_key = 4;
-    // The k8s version for the kubelet.
-    string kubelet_version = 5;
     // The k8s version for the control plane. This node is only a master if this field is defined.
-    string control_plane_version = 6;
+    string control_plane_version = 5;
 }
 
 message CreateClusterVMWareSpec {
