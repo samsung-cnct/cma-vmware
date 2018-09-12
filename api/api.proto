@@ -93,8 +93,6 @@ message CreateClusterReply {
 message GetClusterMsg {
     // Name of the cluster to be looked up
     string name = 1;
-    // Credentials to query for the cluster
-    VMWareCredentials credentials = 2;
 }
 
 message GetClusterReply {
@@ -107,8 +105,6 @@ message GetClusterReply {
 message DeleteClusterMsg {
     // What is the cluster's name to destroy
     string name = 1;
-    // Credentials to delete the cluster
-    VMWareCredentials credentials = 2;
 }
 
 message DeleteClusterReply {
@@ -119,8 +115,6 @@ message DeleteClusterReply {
 }
 
 message GetClusterListMsg {
-    // Credentials to search subscription for clusters
-    VMWareCredentials credentials = 2;
 }
 
 message GetClusterListReply {
@@ -167,7 +161,7 @@ message CreateClusterProviderSpec {
 }
 
 // The credentials to use for creating the cluster
-message VMWareCredentials {
+message MachineSpec {
     // The username for SSH access
     string username = 1;
     // The host for SSH access
@@ -176,11 +170,15 @@ message VMWareCredentials {
     string port = 3;
     // The private key for SSH. This must be preconfigured on the VMWare instances
     string private_key = 4;
+    // The k8s version for the kubelet.
+    string kubelet_version = 5;
+    // The k8s version for the control plane. This node is only a master if this field is defined.
+    string control_plane_version = 6;
 }
 
 message CreateClusterVMWareSpec {
     // Credentials to build the cluster
-    VMWareCredentials credentials = 1;
+    repeated MachineSpec machines = 1;
 }
 
 // Get version of API Server
