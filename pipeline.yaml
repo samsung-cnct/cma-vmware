@@ -1,0 +1,12 @@
+type: chart
+builds:
+  - image: samsung_cnct/cma-vmware
+    context: cma-vmware
+    locationOverride: build/docker
+deployments:
+  - chart: cma-vmware
+    timeout: 600
+    retries: 2
+    release: cma-vmware
+prod:
+  doDeploy: none
