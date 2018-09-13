@@ -1,8 +1,12 @@
 package apiserver
 
 import (
-	pb "gitlab.com/mvenezia/cma-vmware/pkg/generated/api"
 	"golang.org/x/net/context"
+
+	"github.com/samsung-cnct/cluster-api-provider-ssh/cloud/ssh/providerconfig/v1alpha1"
+	clusterapi "sigs.k8s.io/cluster-api/pkg/apis/cluster/v1alpha1"
+
+	pb "gitlab.com/mvenezia/cma-vmware/pkg/generated/api"
 )
 
 func (s *Server) CreateCluster(ctx context.Context, in *pb.CreateClusterMsg) (*pb.CreateClusterReply, error) {
