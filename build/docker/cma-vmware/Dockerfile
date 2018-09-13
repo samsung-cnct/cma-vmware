@@ -1,6 +1,6 @@
 # Initial preparations
 FROM golang:1.11-alpine
-RUN apk update && apk add git make curl
+RUN apk update && apk add git make curl mercurial
 
 # Let's add the code in
 ADD . /go/src/github.com/samsung-cnct/cma-vmware
