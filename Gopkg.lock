@@ -293,7 +293,7 @@
   branch = "master"
   name = "github.com/samsung-cnct/cluster-api-provider-ssh"
   packages = ["cloud/ssh/providerconfig","cloud/ssh/providerconfig/v1alpha1"]
-  revision = "59f45a941384154489b728dc884f72db16e640e1"
+  revision = "ae7446cd0ef4605977801c40f522551cfa9e8c79"
 
 [[projects]]
   name = "github.com/soheilhy/cmux"
@@ -342,12 +342,6 @@
   packages = ["codec"]
   revision = "b4c50a2b199d93b13dc15e78929cfb23bfdf21ab"
   version = "v1.1.1"
-
-[[projects]]
-  branch = "master"
-  name = "gitlab.com/mvenezia/cma-vmware"
-  packages = ["cmd/cma-vmware/cmd","internal/apiserver","pkg/apiserver","pkg/generated/api","pkg/generated/ui/data/homepage","pkg/generated/ui/data/protobuf","pkg/generated/ui/data/swagger","pkg/generated/ui/data/swaggerjson","pkg/ui/website","pkg/util","pkg/version"]
-  revision = "6bb468bd1921761019431ff6be0b6f5aee952902"
 
 [[projects]]
   branch = "master"
@@ -454,6 +448,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "962f746fae3c618389574683670a004f2a75d3a3c0c840c6686fe454a8d21004"
+  inputs-digest = "2b7376a77a4a6f7e079962f66e8fecb469e1556270655762bf69ad6b524a5713"
   solver-name = "gps-cdcl"
   solver-version = 1

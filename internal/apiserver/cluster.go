@@ -6,7 +6,7 @@ import (
 	"github.com/samsung-cnct/cluster-api-provider-ssh/cloud/ssh/providerconfig/v1alpha1"
 	clusterapi "sigs.k8s.io/cluster-api/pkg/apis/cluster/v1alpha1"
 
-	pb "gitlab.com/mvenezia/cma-vmware/pkg/generated/api"
+	pb "github.com/samsung-cnct/cma-vmware/pkg/generated/api"
 )
 
 func (s *Server) CreateCluster(ctx context.Context, in *pb.CreateClusterMsg) (*pb.CreateClusterReply, error) {

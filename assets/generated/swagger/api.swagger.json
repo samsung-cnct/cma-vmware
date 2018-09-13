@@ -5,7 +5,7 @@
     "version": "v0.1.0",
     "contact": {
       "name": "Michael Venezia",
-      "url": "https://gitlab.com/mvenezia/cma-vmware",
+      "url": "https://github.com/samsung-cnct/cma-vmware",
       "email": "mvenezia@gmail.com"
     }
   },
@@ -39,20 +39,6 @@
             "in": "query",
             "required": false,
             "type": "string"
-          },
-          {
-            "name": "credentials.username",
-            "description": "The Username for API access.",
-            "in": "query",
-            "required": false,
-            "type": "string"
-          },
-          {
-            "name": "credentials.password",
-            "description": "The Password for API access.",
-            "in": "query",
-            "required": false,
-            "type": "string"
           }
         ],
         "tags": [
@@ -74,20 +60,6 @@
           {
             "name": "name",
             "description": "What is the cluster's name to destroy.",
-            "in": "query",
-            "required": false,
-            "type": "string"
-          },
-          {
-            "name": "credentials.username",
-            "description": "The Username for API access.",
-            "in": "query",
-            "required": false,
-            "type": "string"
-          },
-          {
-            "name": "credentials.password",
-            "description": "The Password for API access.",
             "in": "query",
             "required": false,
             "type": "string"
@@ -135,22 +107,6 @@
             }
           }
         },
-        "parameters": [
-          {
-            "name": "credentials.username",
-            "description": "The Username for API access.",
-            "in": "query",
-            "required": false,
-            "type": "string"
-          },
-          {
-            "name": "credentials.password",
-            "description": "The Password for API access.",
-            "in": "query",
-            "required": false,
-            "type": "string"
-          }
-        ],
         "tags": [
           "Cluster"
         ]
@@ -268,7 +224,7 @@
         },
         "k8s_version": {
           "type": "string",
-          "title": "The version of Kubernetes"
+          "description": "The version of Kubernetes for worker nodes. Control plane versions are determined by the MachineSpec."
         },
         "vmware": {
           "$ref": "#/definitions/cmavmwareCreateClusterVMWareSpec",
@@ -302,9 +258,16 @@
     "cmavmwareCreateClusterVMWareSpec": {
       "type": "object",
       "properties": {
-        "credentials": {
-          "$ref": "#/definitions/cmavmwareVMWareCredentials",
-          "title": "Credentials to build the cluster"
+        "namespace": {
+          "type": "string",
+          "title": "This namespace along with the clustername with CreateClusterProviderSpec uniquely identify a managed cluster"
+        },
+        "machines": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/cmavmwareMachineSpec"
+          },
+          "title": "Machines which comprise the cluster"
         }
       }
     },
@@ -367,16 +330,28 @@
       },
       "title": "Reply for version request"
     },
-    "cmavmwareVMWareCredentials": {
+    "cmavmwareMachineSpec": {
       "type": "object",
       "properties": {
         "username": {
           "type": "string",
-          "title": "The Username for API access"
+          "title": "The username for SSH access"
         },
-        "password": {
+        "host": {
           "type": "string",
-          "title": "The Password for API access"
+          "title": "The host for SSH access"
+        },
+        "port": {
+          "type": "string",
+          "title": "The port for SSH access"
+        },
+        "private_key": {
+          "type": "string",
+          "title": "The private key for SSH. This must be preconfigured on the VMWare instances"
+        },
+        "control_plane_version": {
+          "type": "string",
+          "description": "The k8s version for the control plane. This node is only a master if this field is defined."
         }
       },
       "title": "The credentials to use for creating the cluster"
@@ -384,6 +359,6 @@
   },
   "externalDocs": {
     "description": "More about Cluster Manager VMWare Helper API",
-    "url": "https://gitlab.com/mvenezia/cma-vmware"
+    "url": "https://github.com/samsung-cnct/cma-vmware"
   }
 }

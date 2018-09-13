@@ -5,10 +5,10 @@ import (
 	"net/http"
 
 	"github.com/philips/go-bindata-assetfs"
-	"gitlab.com/mvenezia/cma-vmware/pkg/generated/ui/data/homepage"
-	"gitlab.com/mvenezia/cma-vmware/pkg/generated/ui/data/protobuf"
-	"gitlab.com/mvenezia/cma-vmware/pkg/generated/ui/data/swagger"
-	"gitlab.com/mvenezia/cma-vmware/pkg/generated/ui/data/swaggerjson"
+	"github.com/samsung-cnct/cma-vmware/pkg/generated/ui/data/homepage"
+	"github.com/samsung-cnct/cma-vmware/pkg/generated/ui/data/protobuf"
+	"github.com/samsung-cnct/cma-vmware/pkg/generated/ui/data/swagger"
+	"github.com/samsung-cnct/cma-vmware/pkg/generated/ui/data/swaggerjson"
 )
 
 func AddWebsiteHandles(mux *http.ServeMux) {

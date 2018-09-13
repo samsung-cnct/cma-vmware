@@ -59,10 +59,6 @@
 
 [[constraint]]
   branch = "master"
-  name = "gitlab.com/mvenezia/cma-vmware"
-
-[[constraint]]
-  branch = "master"
   name = "golang.org/x/net"
 
 [[constraint]]

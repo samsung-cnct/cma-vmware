@@ -28,12 +28,12 @@ option (grpc.gateway.protoc_gen_swagger.options.openapiv2_swagger) = {
     version: "v0.1.0";
     contact: {
         name: "Michael Venezia";
-        url: "https://gitlab.com/mvenezia/cma-vmware";
+        url: "https://github.com/samsung-cnct/cma-vmware";
         email: "mvenezia@gmail.com";
     };
   };
   external_docs: {
-    url: "https://gitlab.com/mvenezia/cma-vmware";
+    url: "https://github.com/samsung-cnct/cma-vmware";
     description: "More about Cluster Manager VMWare Helper API";
   }
   schemes: HTTPS;

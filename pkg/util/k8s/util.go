@@ -4,7 +4,7 @@ import (
 	"os"
 
 	"github.com/juju/loggo"
-	log "gitlab.com/mvenezia/cma-vmware/pkg/util"
+	log "github.com/samsung-cnct/cma-vmware/pkg/util"
 )
 
 var (

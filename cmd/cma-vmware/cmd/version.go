@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
-	"gitlab.com/mvenezia/cma-vmware/pkg/version"
+	"github.com/samsung-cnct/cma-vmware/pkg/version"
 )
 
 var VersionOutput string
