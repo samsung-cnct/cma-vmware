@@ -19,7 +19,7 @@
     - [GetVersionMsg](#cmavmware.GetVersionMsg)
     - [GetVersionReply](#cmavmware.GetVersionReply)
     - [GetVersionReply.VersionInformation](#cmavmware.GetVersionReply.VersionInformation)
-    - [VMWareCredentials](#cmavmware.VMWareCredentials)
+    - [MachineSpec](#cmavmware.MachineSpec)
   
   
   
@@ -42,7 +42,7 @@
     - [GetVersionMsg](#cmavmware.GetVersionMsg)
     - [GetVersionReply](#cmavmware.GetVersionReply)
     - [GetVersionReply.VersionInformation](#cmavmware.GetVersionReply.VersionInformation)
-    - [VMWareCredentials](#cmavmware.VMWareCredentials)
+    - [MachineSpec](#cmavmware.MachineSpec)
   
   
   
@@ -120,7 +120,7 @@
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
 | name | [string](#string) |  | What is the provider - like vmware |
-| k8s_version | [string](#string) |  | The version of Kubernetes |
+| k8s_version | [string](#string) |  | The version of Kubernetes for worker nodes. Control plane versions are determined by the MachineSpec. |
 | vmware | [CreateClusterVMWareSpec](#cmavmware.CreateClusterVMWareSpec) |  | The VMWare specification |
 | high_availability | [bool](#bool) |  | Whether or not the cluster is HA |
 | network_fabric | [string](#string) |  | The fabric to be used |
@@ -154,7 +154,8 @@
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
-| credentials | [VMWareCredentials](#cmavmware.VMWareCredentials) |  | Credentials to build the cluster |
+| namespace | [string](#string) |  | This namespace along with the clustername with CreateClusterProviderSpec uniquely identify a managed cluster |
+| machines | [MachineSpec](#cmavmware.MachineSpec) | repeated | Machines which comprise the cluster |
 
 
 
@@ -170,7 +171,6 @@
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
 | name | [string](#string) |  | What is the cluster&#39;s name to destroy |
-| credentials | [VMWareCredentials](#cmavmware.VMWareCredentials) |  | Credentials to delete the cluster |
 
 
 
@@ -197,11 +197,6 @@
 
 ### GetClusterListMsg
 
-
-
-| Field | Type | Label | Description |
-| ----- | ---- | ----- | ----------- |
-| credentials | [VMWareCredentials](#cmavmware.VMWareCredentials) |  | Credentials to search subscription for clusters |
 
 
 
@@ -233,7 +228,6 @@
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
 | name | [string](#string) |  | Name of the cluster to be looked up |
-| credentials | [VMWareCredentials](#cmavmware.VMWareCredentials) |  | Credentials to query for the cluster |
 
 
 
@@ -303,16 +297,19 @@ Reply for version request
 
 
 
-<a name="cmavmware.VMWareCredentials"></a>
+<a name="cmavmware.MachineSpec"></a>
 
-### VMWareCredentials
+### MachineSpec
 The credentials to use for creating the cluster
 
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
-| username | [string](#string) |  | The Username for API access |
-| password | [string](#string) |  | The Password for API access |
+| username | [string](#string) |  | The username for SSH access |
+| host | [string](#string) |  | The host for SSH access |
+| port | [string](#string) |  | The port for SSH access |
+| private_key | [string](#string) |  | The private key for SSH. This must be preconfigured on the VMWare instances |
+| control_plane_version | [string](#string) |  | The k8s version for the control plane. This node is only a master if this field is defined. |
 
 
 
@@ -409,7 +406,7 @@ The credentials to use for creating the cluster
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
 | name | [string](#string) |  | What is the provider - like vmware |
-| k8s_version | [string](#string) |  | The version of Kubernetes |
+| k8s_version | [string](#string) |  | The version of Kubernetes for worker nodes. Control plane versions are determined by the MachineSpec. |
 | vmware | [CreateClusterVMWareSpec](#cmavmware.CreateClusterVMWareSpec) |  | The VMWare specification |
 | high_availability | [bool](#bool) |  | Whether or not the cluster is HA |
 | network_fabric | [string](#string) |  | The fabric to be used |
@@ -443,7 +440,8 @@ The credentials to use for creating the cluster
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
-| credentials | [VMWareCredentials](#cmavmware.VMWareCredentials) |  | Credentials to build the cluster |
+| namespace | [string](#string) |  | This namespace along with the clustername with CreateClusterProviderSpec uniquely identify a managed cluster |
+| machines | [MachineSpec](#cmavmware.MachineSpec) | repeated | Machines which comprise the cluster |
 
 
 
@@ -459,7 +457,6 @@ The credentials to use for creating the cluster
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
 | name | [string](#string) |  | What is the cluster&#39;s name to destroy |
-| credentials | [VMWareCredentials](#cmavmware.VMWareCredentials) |  | Credentials to delete the cluster |
 
 
 
@@ -486,11 +483,6 @@ The credentials to use for creating the cluster
 
 ### GetClusterListMsg
 
-
-
-| Field | Type | Label | Description |
-| ----- | ---- | ----- | ----------- |
-| credentials | [VMWareCredentials](#cmavmware.VMWareCredentials) |  | Credentials to search subscription for clusters |
 
 
 
@@ -522,7 +514,6 @@ The credentials to use for creating the cluster
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
 | name | [string](#string) |  | Name of the cluster to be looked up |
-| credentials | [VMWareCredentials](#cmavmware.VMWareCredentials) |  | Credentials to query for the cluster |
 
 
 
@@ -592,16 +583,19 @@ Reply for version request
 
 
 
-<a name="cmavmware.VMWareCredentials"></a>
+<a name="cmavmware.MachineSpec"></a>
 
-### VMWareCredentials
+### MachineSpec
 The credentials to use for creating the cluster
 
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
-| username | [string](#string) |  | The Username for API access |
-| password | [string](#string) |  | The Password for API access |
+| username | [string](#string) |  | The username for SSH access |
+| host | [string](#string) |  | The host for SSH access |
+| port | [string](#string) |  | The port for SSH access |
+| private_key | [string](#string) |  | The private key for SSH. This must be preconfigured on the VMWare instances |
+| control_plane_version | [string](#string) |  | The k8s version for the control plane. This node is only a master if this field is defined. |
 
 
 

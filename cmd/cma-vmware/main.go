@@ -1,7 +1,7 @@
 package main
 
 import (
-	"gitlab.com/mvenezia/cma-vmware/cmd/cma-vmware/cmd"
+	"github.com/samsung-cnct/cma-vmware/cmd/cma-vmware/cmd"
 )
 
 func main() {

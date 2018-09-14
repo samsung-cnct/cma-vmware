@@ -12,7 +12,7 @@ GIT_DIRTY=$(shell test -n "`git status --porcelain`" && echo "dirty" || echo "cl
 BUILD_DATE=$(shell date -u +'%Y-%m-%dT%H:%M:%SZ')
 
 # Associating version information variables with data
-VERSION_PACKAGE=gitlab.com/mvenezia/cma-vmware/pkg/version
+VERSION_PACKAGE=github.com/samsung-cnct/cma-vmware/pkg/version
 LD_DATA_GIT_COMMIT=-X ${VERSION_PACKAGE}.gitCommit=${GIT_COMMIT}
 LD_DATA_GIT_TAG=-X ${VERSION_PACKAGE}.gitVersion=${GIT_TAG}
 LD_DATA_GIT_DIRTY=-X ${VERSION_PACKAGE}.gitTreeState=${GIT_DIRTY}
