@@ -20,6 +20,24 @@
 #  name = "github.com/x/y"
 #  version = "2.4.0"
 
+[prune]
+  go-tests = true
+  unused-packages = true
+
+  # Don't prune helper scripts from code-generator
+  [[prune.project]]
+    name = "k8s.io/code-generator"
+    unused-packages = false
+
+  # Don't prune helper scripts from gengo
+  [[prune.project]]
+    name = "k8s.io/gengo"
+    unused-packages = false
+
+  # Don't prune code needed by openapi-gen
+  [[prune.project]]
+    name = "k8s.io/kube-openapi"
+    unused-packages = false
 
 [[constraint]]
   name = "github.com/elazarl/go-bindata-assetfs"
@@ -69,17 +87,42 @@
   name = "google.golang.org/grpc"
   version = "1.15.0"
 
-[[constraint]]
-  branch = "release-1.9"
-  name = "k8s.io/api"
+#[[constraint]]
+#  branch = "release-1.9"
+#  name = "k8s.io/api"
+#
+#[[constraint]]
+#  branch = "release-1.9"
+#  name = "k8s.io/apimachinery"
+#
+#[[constraint]]
+#  name = "k8s.io/client-go"
+#  version = "release-6.0"
+#  #version = "7.0.0"
 
 [[constraint]]
+  name = "k8s.io/api"
   branch = "release-1.9"
+
+[[constraint]]
   name = "k8s.io/apimachinery"
+  branch = "release-1.9"
+
+[[constraint]]
+  name = "k8s.io/apiserver"
+  branch = "release-1.9"
 
 [[constraint]]
   name = "k8s.io/client-go"
-  version = "7.0.0"
+  branch = "release-6.0"
+
+[[constraint]]
+  name = "github.com/kubernetes-incubator/apiserver-builder"
+  version = "v1.9-alpha.3"
+
+[[constraint]]
+  name = "k8s.io/code-generator"
+  branch = "release-1.9"
 
 [[constraint]]
   branch = "master"

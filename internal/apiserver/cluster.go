@@ -10,6 +10,9 @@ import (
 )
 
 func (s *Server) CreateCluster(ctx context.Context, in *pb.CreateClusterMsg) (*pb.CreateClusterReply, error) {
+	_ = clusterapi.Cluster{}
+	_ = v1alpha1.SSHClusterProviderConfig{}
+
 	return &pb.CreateClusterReply{
 		Ok: true,
 		Cluster: &pb.ClusterItem{
