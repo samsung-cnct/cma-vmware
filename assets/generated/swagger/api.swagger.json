@@ -262,6 +262,10 @@
           "type": "string",
           "title": "This namespace along with the clustername with CreateClusterProviderSpec uniquely identify a managed cluster"
         },
+        "private_key": {
+          "type": "string",
+          "description": "Private key for all nodes in the cluster; note that in the Cluster API SSH provider these can be specified independently."
+        },
         "machines": {
           "type": "array",
           "items": {
@@ -342,12 +346,9 @@
           "title": "The host for SSH access"
         },
         "port": {
-          "type": "string",
+          "type": "integer",
+          "format": "int32",
           "title": "The port for SSH access"
-        },
-        "private_key": {
-          "type": "string",
-          "title": "The private key for SSH. This must be preconfigured on the VMWare instances"
         },
         "control_plane_version": {
           "type": "string",
