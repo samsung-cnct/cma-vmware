@@ -30,6 +30,8 @@ kind: Machine
 metadata:
   name: {{ .Name }}
   namespace: {{ $.Name }}
+  labels:
+    controlPlaneVersion: {{ .ControlPlaneVersion }}
 spec:
   providerConfig:
     value:
