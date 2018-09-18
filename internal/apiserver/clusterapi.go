@@ -44,7 +44,7 @@ func ApplyManifests(manifests string) error {
 	return nil
 }
 
-// Run command with args and kill if timeout is reached. If streamIn is non-nil it will
+// Run command with args and kill if timeout is reached. If streamIn is not empty it will
 // also be passed to the command via stdin.
 func RunCommand(name string, args []string, streamIn string, timeout time.Duration) error {
 	fmt.Printf("Running command \"%v %v\"\n", name, strings.Join(args, " "))

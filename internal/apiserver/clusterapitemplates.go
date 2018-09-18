@@ -2,11 +2,16 @@ package apiserver
 
 const ClusterAPIProviderSSHTemplate = `
 ---
+kind: Namespace
+apiVersion: v1
+metadata:
+  name: {{ .Name }}
+---
 apiVersion: "cluster.k8s.io/v1alpha1"
 kind: Cluster
 metadata:
   name: {{ .Name }}
-  namespace: {{ .Provider.Namespace }}
+  namespace: {{ .Name }}
 spec:
   clusterNetwork:
     services:
@@ -18,12 +23,13 @@ spec:
     value:
       apiVersion: "sshproviderconfig/v1alpha1"
       kind: "SSHClusterProviderConfig"
-{{ range .Provider.Machines }}
+{{ range $.Provider.Machines }}
 ---
 apiVersion: "cluster.k8s.io/v1alpha1"
 kind: Machine
 metadata:
   name: {{ .Name }}
+  namespace: {{ $.Name }}
 spec:
   providerConfig:
     value:
@@ -47,8 +53,8 @@ kind: Secret
 type: Opaque
 metadata:
   name: cluster-private-key
-  namespace: default
+  namespace: {{ $.Name }}
 data:
-  private-key: {{ .Provider.PrivateKey }}
+  private-key: {{ $.Provider.PrivateKey }}
   pass-phrase: ""
 `
