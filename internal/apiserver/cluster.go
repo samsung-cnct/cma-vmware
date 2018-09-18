@@ -11,15 +11,47 @@ import (
 )
 
 func (s *Server) CreateCluster(ctx context.Context, in *pb.CreateClusterMsg) (*pb.CreateClusterReply, error) {
-	_ = clusterapi.Cluster{}
-	_ = v1alpha1.SSHClusterProviderConfig{}
+	replyOk := true
+	replyStatus := "Creating"
 
+	manifests, err := GetManifests(in)
+	if err != nil {
+		// TODO: Make this consistent with how the CMA does logging...
+		fmt.Printf("ERROR: CreateCluster, GetManifests, name %v, err %v", in.Name, err)
+		return &pb.CreateClusterReply{
+			Ok: replyOk,
+			Cluster: &pb.ClusterItem{
+				Id:     "stub",
+				Name:   in.Name,
+				Status: replyStatus,
+			},
+		}, nil
+	}
+
+	err = ApplyManifests(manifests)
+	if err != nil {
+		// TODO: Make this consistent with how the CMA does logging...
+		fmt.Printf("ERROR: CreateCluster, name %v, err %v", in.Name, err)
+		return &pb.CreateClusterReply{
+			Ok: replyOk,
+			Cluster: &pb.ClusterItem{
+				Id:     "stub",
+				Name:   in.Name,
+				Status: replyStatus,
+			},
+		}, nil
+		replyOk = false
+		replyStatus := "PossiblePartialFailure"
+		goto err_exit
+	}
+
+err_exit:
 	return &pb.CreateClusterReply{
-		Ok: true,
+		Ok: replyOk,
 		Cluster: &pb.ClusterItem{
 			Id:     "stub",
-			Name:   "stub",
-			Status: "Creating",
+			Name:   in.Name,
+			Status: replyStatus,
 		},
 	}, nil
 }
@@ -37,6 +69,9 @@ func (s *Server) GetCluster(ctx context.Context, in *pb.GetClusterMsg) (*pb.GetC
 }
 
 func (s *Server) DeleteCluster(ctx context.Context, in *pb.DeleteClusterMsg) (*pb.DeleteClusterReply, error) {
+	_ = clusterapi.Cluster{}
+	_ = v1alpha1.SSHClusterProviderConfig{}
+
 	return &pb.DeleteClusterReply{Ok: true, Status: "stub"}, nil
 }
 
