@@ -10,6 +10,9 @@ import (
 	"text/template"
 	"time"
 
+	//"github.com/samsung-cnct/cluster-api-provider-ssh/cloud/ssh/providerconfig/v1alpha1"
+	//clusterv1 "sigs.k8s.io/cluster-api/pkg/apis/cluster/v1alpha1"
+
 	pb "github.com/samsung-cnct/cma-vmware/pkg/generated/api"
 )
 
@@ -32,11 +35,69 @@ func GetManifests(in *pb.CreateClusterMsg) (string, error) {
 	return string(tmplBuf.Bytes()), nil
 }
 
-func ApplyManifests(manifests string) error {
+func ApplyManifests(in *pb.CreateClusterMsg) error {
+	manifests, err := GetManifests(in)
+	if err != nil {
+		return err
+	}
+
 	cmdName := "kubectl"
-	cmdArgs := []string{"apply", "--"}
+	cmdArgs := []string{"apply", "-n", in.Name}
 	cmdTimeout := time.Duration(maxApplyTimeout) * time.Second
-	err := RunCommand(cmdName, cmdArgs, manifests, cmdTimeout)
+	err = RunCommand(cmdName, cmdArgs, manifests, cmdTimeout)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// Control plane _machines_ must be deleted before the workers to ensure the
+// cooresponding _nodes_ can be drained and deleted. The cluster-private-key
+// secret and cluster object must be deleted after all machines; otherwise
+// they can not be deleted.
+func DeleteManifests(clusterName string) error {
+	cmdName := "kubectl"
+	cmdTimeout := time.Duration(maxApplyTimeout) * time.Second
+
+	// Delete workers. Control plane nodes have a non-empty value for the label key controlPlane.
+	cmdArgs := []string{"delete", "-n", clusterName, "-l", "controlPlane="}
+	err := RunCommand(cmdName, cmdArgs, "", cmdTimeout)
+	if err != nil {
+		return err
+	}
+
+	// Wait for workers to finish being deleted.
+	cmdArgs = []string{"wait", "--for=delete", "machines", "-n", clusterName, "-l", "controlPlane="}
+	err = RunCommand(cmdName, cmdArgs, "", cmdTimeout)
+	if err != nil {
+		return err
+	}
+
+	// Delete control plane.
+	cmdArgs = []string{"delete", "-n", clusterName, "-l", "controlPlane="}
+	err = RunCommand(cmdName, cmdArgs, "", cmdTimeout)
+	if err != nil {
+		return err
+	}
+
+	// Wait for control plane to finish being deleted.
+	cmdArgs = []string{"wait", "--for=delete", "machines", "-n", clusterName}
+	err = RunCommand(cmdName, cmdArgs, "", cmdTimeout)
+	if err != nil {
+		return err
+	}
+
+	// Delete the namespace and anything else in it (e.g. the Cluster, Secrets, etc.)
+	cmdArgs = []string{"delete", "namespace", clusterName, "--all"}
+	err = RunCommand(cmdName, cmdArgs, "", cmdTimeout)
+	if err != nil {
+		return err
+	}
+
+	// Wait for the namespace to finish being deleted.
+	cmdArgs = []string{"wait", "--for=delete", "machines", "-n", clusterName}
+	err = RunCommand(cmdName, cmdArgs, "", cmdTimeout)
 	if err != nil {
 		return err
 	}

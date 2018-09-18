@@ -4,28 +4,11 @@ import (
 	"fmt"
 	"golang.org/x/net/context"
 
-	"github.com/samsung-cnct/cluster-api-provider-ssh/cloud/ssh/providerconfig/v1alpha1"
-	clusterapi "sigs.k8s.io/cluster-api/pkg/apis/cluster/v1alpha1"
-
 	pb "github.com/samsung-cnct/cma-vmware/pkg/generated/api"
 )
 
 func (s *Server) CreateCluster(ctx context.Context, in *pb.CreateClusterMsg) (*pb.CreateClusterReply, error) {
-	manifests, err := GetManifests(in)
-	if err != nil {
-		// TODO: Make this consistent with how the CMA does logging...
-		fmt.Printf("ERROR: CreateCluster, GetManifests, name %v, err %v", in.Name, err)
-		return &pb.CreateClusterReply{
-			Ok: false,
-			Cluster: &pb.ClusterItem{
-				Id:     "stub",
-				Name:   in.Name,
-				Status: "Failed",
-			},
-		}, nil
-	}
-
-	err = ApplyManifests(manifests)
+	err := ApplyManifests(in)
 	if err != nil {
 		// TODO: Make this consistent with how the CMA does logging...
 		fmt.Printf("ERROR: CreateCluster, name %v, err %v", in.Name, err)
@@ -34,7 +17,7 @@ func (s *Server) CreateCluster(ctx context.Context, in *pb.CreateClusterMsg) (*p
 			Cluster: &pb.ClusterItem{
 				Id:     "stub",
 				Name:   in.Name,
-				Status: "PossiblePartialFailure",
+				Status: "CreateFailed",
 			},
 		}, nil
 	}
@@ -62,10 +45,12 @@ func (s *Server) GetCluster(ctx context.Context, in *pb.GetClusterMsg) (*pb.GetC
 }
 
 func (s *Server) DeleteCluster(ctx context.Context, in *pb.DeleteClusterMsg) (*pb.DeleteClusterReply, error) {
-	_ = clusterapi.Cluster{}
-	_ = v1alpha1.SSHClusterProviderConfig{}
+	err := DeleteManifests(in.Name)
+	if err != nil {
+		return &pb.DeleteClusterReply{Ok: false, Status: "DeleteFailed"}, nil
+	}
 
-	return &pb.DeleteClusterReply{Ok: true, Status: "stub"}, nil
+	return &pb.DeleteClusterReply{Ok: true, Status: "Deleted"}, nil
 }
 
 func (s *Server) GetClusterList(ctx context.Context, in *pb.GetClusterListMsg) (reply *pb.GetClusterListReply, err error) {
