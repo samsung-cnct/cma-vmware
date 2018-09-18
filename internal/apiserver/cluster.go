@@ -11,19 +11,16 @@ import (
 )
 
 func (s *Server) CreateCluster(ctx context.Context, in *pb.CreateClusterMsg) (*pb.CreateClusterReply, error) {
-	replyOk := true
-	replyStatus := "Creating"
-
 	manifests, err := GetManifests(in)
 	if err != nil {
 		// TODO: Make this consistent with how the CMA does logging...
 		fmt.Printf("ERROR: CreateCluster, GetManifests, name %v, err %v", in.Name, err)
 		return &pb.CreateClusterReply{
-			Ok: replyOk,
+			Ok: false,
 			Cluster: &pb.ClusterItem{
 				Id:     "stub",
 				Name:   in.Name,
-				Status: replyStatus,
+				Status: "Failed",
 			},
 		}, nil
 	}
@@ -33,25 +30,21 @@ func (s *Server) CreateCluster(ctx context.Context, in *pb.CreateClusterMsg) (*p
 		// TODO: Make this consistent with how the CMA does logging...
 		fmt.Printf("ERROR: CreateCluster, name %v, err %v", in.Name, err)
 		return &pb.CreateClusterReply{
-			Ok: replyOk,
+			Ok: false,
 			Cluster: &pb.ClusterItem{
 				Id:     "stub",
 				Name:   in.Name,
-				Status: replyStatus,
+				Status: "PossiblePartialFailure",
 			},
 		}, nil
-		replyOk = false
-		replyStatus := "PossiblePartialFailure"
-		goto err_exit
 	}
 
-err_exit:
 	return &pb.CreateClusterReply{
-		Ok: replyOk,
+		Ok: true,
 		Cluster: &pb.ClusterItem{
 			Id:     "stub",
 			Name:   in.Name,
-			Status: replyStatus,
+			Status: "Creating",
 		},
 	}, nil
 }

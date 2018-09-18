@@ -9,6 +9,8 @@ import (
 	"strings"
 	"text/template"
 	"time"
+
+	pb "github.com/samsung-cnct/cma-vmware/pkg/generated/api"
 )
 
 const (
