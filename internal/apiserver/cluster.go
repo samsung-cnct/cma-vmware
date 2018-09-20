@@ -1,6 +1,7 @@
 package apiserver
 
 import (
+	"fmt"
 	"golang.org/x/net/context"
 
 	"github.com/samsung-cnct/cluster-api-provider-ssh/cloud/ssh/providerconfig/v1alpha1"
@@ -44,4 +45,16 @@ func (s *Server) GetClusterList(ctx context.Context, in *pb.GetClusterListMsg) (
 		Ok: true,
 	}
 	return reply, nil
+}
+
+func (s *Server) AdjustClusterNodes(ctx context.Context, in *pb.AdjustClusterMsg) (*pb.AdjustClusterReply, error) {
+	return &pb.AdjustClusterReply{}, fmt.Errorf("adjust cluster nodes not implemented yet")
+}
+
+func (s *Server) GetUpgradeClusterInformation(ctx context.Context, in *pb.GetUpgradeClusterInformationMsg) (*pb.GetUpgradeClusterInformationReply, error) {
+	return &pb.GetUpgradeClusterInformationReply{}, fmt.Errorf("get cluster upgrade information not implemented yet")
+}
+
+func (s *Server) UpgradeCluster(ctx context.Context, in *pb.UpgradeClusterMsg) (*pb.UpgradeClusterReply, error) {
+	return &pb.UpgradeClusterReply{}, fmt.Errorf("cluster upgrade not implemented yet")
 }
