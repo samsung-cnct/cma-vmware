@@ -5,13 +5,13 @@ const ClusterAPIProviderSSHTemplate = `
 kind: Namespace
 apiVersion: v1
 metadata:
-  name: {{ .Name }}
+  name: {{ $.Name }}
 ---
 apiVersion: "cluster.k8s.io/v1alpha1"
 kind: Cluster
 metadata:
-  name: {{ .Name }}
-  namespace: {{ .Name }}
+  name: {{ $.Name }}
+  namespace: {{ $.Name }}
 spec:
   clusterNetwork:
     services:
@@ -23,12 +23,12 @@ spec:
     value:
       apiVersion: "sshproviderconfig/v1alpha1"
       kind: "SSHClusterProviderConfig"
-{{ range $.Provider.Machines }}
+{{ range $.Machines }}
 ---
 apiVersion: "cluster.k8s.io/v1alpha1"
 kind: Machine
 metadata:
-  name: {{ .Name }}
+  generateName: worker-
   namespace: {{ $.Name }}
   labels:
     controlPlaneVersion: {{ .ControlPlaneVersion }}
@@ -46,7 +46,7 @@ spec:
         port: {{ .Port }}
         secretName: cluster-private-key
   versions:
-    kubelet: {{ $.Provider.K8SVersion }}
+    kubelet: {{ .KubeletVersion }}
     controlPlane: {{ .ControlPlaneVersion }}
 {{ end }}
 ---
@@ -57,6 +57,6 @@ metadata:
   name: cluster-private-key
   namespace: {{ $.Name }}
 data:
-  private-key: {{ $.Provider.PrivateKey }}
+  private-key: {{ $.PrivateKey }}
   pass-phrase: ""
 `

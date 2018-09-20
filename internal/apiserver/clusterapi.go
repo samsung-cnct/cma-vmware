@@ -20,14 +20,59 @@ const (
 	maxApplyTimeout = 30
 )
 
-func GetManifests(in *pb.CreateClusterMsg) (string, error) {
+type ClusterShim struct {
+	Name       string
+	PrivateKey string
+	Machines   []MachineShim
+}
+
+type MachineShim struct {
+	Username            string
+	Host                string
+	Port                int
+	Password            string
+	KubeletVersion      string
+	ControlPlaneVersion string
+}
+
+func TranslateAPI(in *pb.CreateClusterMsg) ClusterShim {
+	cluster := ClusterShim{
+		Name:       in.Name,
+		PrivateKey: in.PrivateKey,
+	}
+
+	cluster.Machines = make([]MachineShim, 1)
+	for _, m := range in.ControlPlaneNodes {
+		cluster.Machines = append(cluster.Machines, MachineShim{
+			Username:            m.Username,
+			Password:            m.Password,
+			Host:                m.Host,
+			Port:                int(m.Port),
+			KubeletVersion:      in.K8SVersion,
+			ControlPlaneVersion: in.K8SVersion,
+		})
+	}
+	for _, m := range in.WorkerNodes {
+		cluster.Machines = append(cluster.Machines, MachineShim{
+			Username:       m.Username,
+			Password:       m.Password,
+			Host:           m.Host,
+			Port:           int(m.Port),
+			KubeletVersion: in.K8SVersion,
+		})
+	}
+
+	return cluster
+}
+
+func GetManifests(cluster ClusterShim) (string, error) {
 	tmpl, err := template.New("cluster-api-provider-ssh-cluster").Parse(ClusterAPIProviderSSHTemplate)
 	if err != nil {
 		return "", err
 	}
 
 	var tmplBuf bytes.Buffer
-	err = tmpl.Execute(&tmplBuf, in)
+	err = tmpl.Execute(&tmplBuf, cluster)
 	if err != nil {
 		return "", err
 	}
@@ -35,14 +80,14 @@ func GetManifests(in *pb.CreateClusterMsg) (string, error) {
 	return string(tmplBuf.Bytes()), nil
 }
 
-func ApplyManifests(in *pb.CreateClusterMsg) error {
-	manifests, err := GetManifests(in)
+func ApplyManifests(cluster ClusterShim) error {
+	manifests, err := GetManifests(cluster)
 	if err != nil {
 		return err
 	}
 
 	cmdName := "kubectl"
-	cmdArgs := []string{"apply", "-n", in.Name}
+	cmdArgs := []string{"apply", "-n", cluster.Name}
 	cmdTimeout := time.Duration(maxApplyTimeout) * time.Second
 	err = RunCommand(cmdName, cmdArgs, manifests, cmdTimeout)
 	if err != nil {
