@@ -70,13 +70,13 @@
         ]
       },
       "put": {
-        "summary": "Will provision a cluster",
-        "operationId": "CreateCluster",
+        "summary": "Will adjust a provision a cluster",
+        "operationId": "AdjustClusterNodes",
         "responses": {
           "200": {
             "description": "",
             "schema": {
-              "$ref": "#/definitions/cmavmwareCreateClusterReply"
+              "$ref": "#/definitions/cmavmwareAdjustClusterReply"
             }
           }
         },
@@ -86,7 +86,7 @@
             "in": "body",
             "required": true,
             "schema": {
-              "$ref": "#/definitions/cmavmwareCreateClusterMsg"
+              "$ref": "#/definitions/cmavmwareAdjustClusterMsg"
             }
           }
         ],
@@ -112,6 +112,57 @@
         ]
       }
     },
+    "/api/v1/cluster/upgrade": {
+      "get": {
+        "summary": "Will return upgrade options for a given cluster",
+        "operationId": "GetUpgradeClusterInformation",
+        "responses": {
+          "200": {
+            "description": "",
+            "schema": {
+              "$ref": "#/definitions/cmavmwareGetUpgradeClusterInformationReply"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "name",
+            "description": "What is the cluster that we are considering for upgrade.",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "Cluster"
+        ]
+      },
+      "put": {
+        "summary": "Will attempt to upgrade a cluster",
+        "operationId": "UpgradeCluster",
+        "responses": {
+          "200": {
+            "description": "",
+            "schema": {
+              "$ref": "#/definitions/cmavmwareUpgradeClusterReply"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/cmavmwareUpgradeClusterMsg"
+            }
+          }
+        ],
+        "tags": [
+          "Cluster"
+        ]
+      }
+    },
     "/api/v1/version": {
       "get": {
         "summary": "Will return version information about api server",
@@ -131,6 +182,15 @@
     }
   },
   "definitions": {
+    "AdjustClusterMsgVMWareRemoveMachineSpec": {
+      "type": "object",
+      "properties": {
+        "host": {
+          "type": "string",
+          "title": "The host for SSH access"
+        }
+      }
+    },
     "GetVersionReplyVersionInformation": {
       "type": "object",
       "properties": {
@@ -161,6 +221,39 @@
         "platform": {
           "type": "string",
           "title": "Platform it was compiled for / running on"
+        }
+      }
+    },
+    "cmavmwareAdjustClusterMsg": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string",
+          "title": "What is the cluster that we are considering for upgrade"
+        },
+        "add_nodes": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/cmavmwareVMWareMachineSpec"
+          },
+          "title": "Machines which we want to add to the cluster"
+        },
+        "remove_nodes": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/AdjustClusterMsgVMWareRemoveMachineSpec"
+          },
+          "title": "Machines which we want to remove from the cluster"
+        }
+      }
+    },
+    "cmavmwareAdjustClusterReply": {
+      "type": "object",
+      "properties": {
+        "ok": {
+          "type": "boolean",
+          "format": "boolean",
+          "title": "Was this a successful request"
         }
       }
     },
@@ -209,26 +302,9 @@
           "type": "string",
           "title": "Name of the cluster to be provisioned"
         },
-        "provider": {
-          "$ref": "#/definitions/cmavmwareCreateClusterProviderSpec",
-          "title": "The provider specification"
-        }
-      }
-    },
-    "cmavmwareCreateClusterProviderSpec": {
-      "type": "object",
-      "properties": {
-        "name": {
-          "type": "string",
-          "title": "What is the provider - like vmware"
-        },
         "k8s_version": {
           "type": "string",
           "description": "The version of Kubernetes for worker nodes. Control plane versions are determined by the MachineSpec."
-        },
-        "vmware": {
-          "$ref": "#/definitions/cmavmwareCreateClusterVMWareSpec",
-          "title": "The VMWare specification"
         },
         "high_availability": {
           "type": "boolean",
@@ -238,6 +314,24 @@
         "network_fabric": {
           "type": "string",
           "title": "The fabric to be used"
+        },
+        "control_plane_nodes": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/cmavmwareVMWareMachineSpec"
+          },
+          "title": "Machines which comprise the cluster"
+        },
+        "worker_nodes": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/cmavmwareVMWareMachineSpec"
+          },
+          "title": "Machines which comprise the cluster"
+        },
+        "api_endpoint": {
+          "type": "string",
+          "title": "This should be a value like ip:port that will be a virtual IP/port\nPassed back to external customers to be able to communicate to the cluster"
         }
       }
     },
@@ -252,26 +346,6 @@
         "cluster": {
           "$ref": "#/definitions/cmavmwareClusterItem",
           "title": "The details of the cluster request response"
-        }
-      }
-    },
-    "cmavmwareCreateClusterVMWareSpec": {
-      "type": "object",
-      "properties": {
-        "namespace": {
-          "type": "string",
-          "title": "This namespace along with the clustername with CreateClusterProviderSpec uniquely identify a managed cluster"
-        },
-        "private_key": {
-          "type": "string",
-          "description": "Private key for all nodes in the cluster; note that in the Cluster API SSH provider these can be specified independently."
-        },
-        "machines": {
-          "type": "array",
-          "items": {
-            "$ref": "#/definitions/cmavmwareMachineSpec"
-          },
-          "title": "Machines which comprise the cluster"
         }
       }
     },
@@ -319,6 +393,23 @@
         }
       }
     },
+    "cmavmwareGetUpgradeClusterInformationReply": {
+      "type": "object",
+      "properties": {
+        "ok": {
+          "type": "boolean",
+          "format": "boolean",
+          "title": "Can the cluster be upgraded"
+        },
+        "versions": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "title": "What versions are possible right now"
+        }
+      }
+    },
     "cmavmwareGetVersionReply": {
       "type": "object",
       "properties": {
@@ -334,7 +425,43 @@
       },
       "title": "Reply for version request"
     },
-    "cmavmwareMachineSpec": {
+    "cmavmwareKubernetesLabel": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string",
+          "title": "The name of a label"
+        },
+        "value": {
+          "type": "string",
+          "title": "The value of a label"
+        }
+      }
+    },
+    "cmavmwareUpgradeClusterMsg": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string",
+          "title": "What is the cluster that we are considering for upgrade"
+        },
+        "version": {
+          "type": "string",
+          "title": "What version are we upgrading to?"
+        }
+      }
+    },
+    "cmavmwareUpgradeClusterReply": {
+      "type": "object",
+      "properties": {
+        "ok": {
+          "type": "boolean",
+          "format": "boolean",
+          "title": "Was this a successful request"
+        }
+      }
+    },
+    "cmavmwareVMWareMachineSpec": {
       "type": "object",
       "properties": {
         "username": {
@@ -350,12 +477,19 @@
           "format": "int32",
           "title": "The port for SSH access"
         },
-        "control_plane_version": {
+        "password": {
           "type": "string",
           "description": "The k8s version for the control plane. This node is only a master if this field is defined."
+        },
+        "labels": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/cmavmwareKubernetesLabel"
+          },
+          "title": "The labels for the machines"
         }
       },
-      "title": "The credentials to use for creating the cluster"
+      "title": "The specification for a specific node"
     }
   },
   "externalDocs": {

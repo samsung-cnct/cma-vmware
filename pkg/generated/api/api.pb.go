@@ -28,11 +28,22 @@ const _ = proto.ProtoPackageIsVersion2 // please upgrade the proto package
 type CreateClusterMsg struct {
 	// Name of the cluster to be provisioned
 	Name string `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
-	// The provider specification
-	Provider             *CreateClusterProviderSpec `protobuf:"bytes,2,opt,name=provider,proto3" json:"provider,omitempty"`
-	XXX_NoUnkeyedLiteral struct{}                   `json:"-"`
-	XXX_unrecognized     []byte                     `json:"-"`
-	XXX_sizecache        int32                      `json:"-"`
+	// The version of Kubernetes for worker nodes. Control plane versions are determined by the MachineSpec.
+	K8SVersion string `protobuf:"bytes,2,opt,name=k8s_version,json=k8sVersion,proto3" json:"k8s_version,omitempty"`
+	// Whether or not the cluster is HA
+	HighAvailability bool `protobuf:"varint,3,opt,name=high_availability,json=highAvailability,proto3" json:"high_availability,omitempty"`
+	// The fabric to be used
+	NetworkFabric string `protobuf:"bytes,4,opt,name=network_fabric,json=networkFabric,proto3" json:"network_fabric,omitempty"`
+	// Machines which comprise the cluster
+	ControlPlaneNodes []*VMWareMachineSpec `protobuf:"bytes,5,rep,name=control_plane_nodes,json=controlPlaneNodes,proto3" json:"control_plane_nodes,omitempty"`
+	// Machines which comprise the cluster
+	WorkerNodes []*VMWareMachineSpec `protobuf:"bytes,6,rep,name=worker_nodes,json=workerNodes,proto3" json:"worker_nodes,omitempty"`
+	// This should be a value like ip:port that will be a virtual IP/port
+	// Passed back to external customers to be able to communicate to the cluster
+	ApiEndpoint          string   `protobuf:"bytes,7,opt,name=api_endpoint,json=apiEndpoint,proto3" json:"api_endpoint,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
 }
 
 func (m *CreateClusterMsg) Reset()         { *m = CreateClusterMsg{} }
@@ -47,8 +58,8 @@ func (m *CreateClusterMsg) XXX_Unmarshal(b []byte) error {
 func (m *CreateClusterMsg) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	return xxx_messageInfo_CreateClusterMsg.Marshal(b, m, deterministic)
 }
-func (m *CreateClusterMsg) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_CreateClusterMsg.Merge(m, src)
+func (dst *CreateClusterMsg) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_CreateClusterMsg.Merge(dst, src)
 }
 func (m *CreateClusterMsg) XXX_Size() int {
 	return xxx_messageInfo_CreateClusterMsg.Size(m)
@@ -66,11 +77,46 @@ func (m *CreateClusterMsg) GetName() string {
 	return ""
 }
 
-func (m *CreateClusterMsg) GetProvider() *CreateClusterProviderSpec {
+func (m *CreateClusterMsg) GetK8SVersion() string {
 	if m != nil {
-		return m.Provider
+		return m.K8SVersion
+	}
+	return ""
+}
+
+func (m *CreateClusterMsg) GetHighAvailability() bool {
+	if m != nil {
+		return m.HighAvailability
+	}
+	return false
+}
+
+func (m *CreateClusterMsg) GetNetworkFabric() string {
+	if m != nil {
+		return m.NetworkFabric
+	}
+	return ""
+}
+
+func (m *CreateClusterMsg) GetControlPlaneNodes() []*VMWareMachineSpec {
+	if m != nil {
+		return m.ControlPlaneNodes
 	}
 	return nil
+}
+
+func (m *CreateClusterMsg) GetWorkerNodes() []*VMWareMachineSpec {
+	if m != nil {
+		return m.WorkerNodes
+	}
+	return nil
+}
+
+func (m *CreateClusterMsg) GetApiEndpoint() string {
+	if m != nil {
+		return m.ApiEndpoint
+	}
+	return ""
 }
 
 type CreateClusterReply struct {
@@ -95,8 +141,8 @@ func (m *CreateClusterReply) XXX_Unmarshal(b []byte) error {
 func (m *CreateClusterReply) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	return xxx_messageInfo_CreateClusterReply.Marshal(b, m, deterministic)
 }
-func (m *CreateClusterReply) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_CreateClusterReply.Merge(m, src)
+func (dst *CreateClusterReply) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_CreateClusterReply.Merge(dst, src)
 }
 func (m *CreateClusterReply) XXX_Size() int {
 	return xxx_messageInfo_CreateClusterReply.Size(m)
@@ -141,8 +187,8 @@ func (m *GetClusterMsg) XXX_Unmarshal(b []byte) error {
 func (m *GetClusterMsg) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	return xxx_messageInfo_GetClusterMsg.Marshal(b, m, deterministic)
 }
-func (m *GetClusterMsg) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_GetClusterMsg.Merge(m, src)
+func (dst *GetClusterMsg) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_GetClusterMsg.Merge(dst, src)
 }
 func (m *GetClusterMsg) XXX_Size() int {
 	return xxx_messageInfo_GetClusterMsg.Size(m)
@@ -181,8 +227,8 @@ func (m *GetClusterReply) XXX_Unmarshal(b []byte) error {
 func (m *GetClusterReply) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	return xxx_messageInfo_GetClusterReply.Marshal(b, m, deterministic)
 }
-func (m *GetClusterReply) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_GetClusterReply.Merge(m, src)
+func (dst *GetClusterReply) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_GetClusterReply.Merge(dst, src)
 }
 func (m *GetClusterReply) XXX_Size() int {
 	return xxx_messageInfo_GetClusterReply.Size(m)
@@ -227,8 +273,8 @@ func (m *DeleteClusterMsg) XXX_Unmarshal(b []byte) error {
 func (m *DeleteClusterMsg) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	return xxx_messageInfo_DeleteClusterMsg.Marshal(b, m, deterministic)
 }
-func (m *DeleteClusterMsg) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_DeleteClusterMsg.Merge(m, src)
+func (dst *DeleteClusterMsg) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_DeleteClusterMsg.Merge(dst, src)
 }
 func (m *DeleteClusterMsg) XXX_Size() int {
 	return xxx_messageInfo_DeleteClusterMsg.Size(m)
@@ -268,8 +314,8 @@ func (m *DeleteClusterReply) XXX_Unmarshal(b []byte) error {
 func (m *DeleteClusterReply) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	return xxx_messageInfo_DeleteClusterReply.Marshal(b, m, deterministic)
 }
-func (m *DeleteClusterReply) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_DeleteClusterReply.Merge(m, src)
+func (dst *DeleteClusterReply) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_DeleteClusterReply.Merge(dst, src)
 }
 func (m *DeleteClusterReply) XXX_Size() int {
 	return xxx_messageInfo_DeleteClusterReply.Size(m)
@@ -312,8 +358,8 @@ func (m *GetClusterListMsg) XXX_Unmarshal(b []byte) error {
 func (m *GetClusterListMsg) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	return xxx_messageInfo_GetClusterListMsg.Marshal(b, m, deterministic)
 }
-func (m *GetClusterListMsg) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_GetClusterListMsg.Merge(m, src)
+func (dst *GetClusterListMsg) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_GetClusterListMsg.Merge(dst, src)
 }
 func (m *GetClusterListMsg) XXX_Size() int {
 	return xxx_messageInfo_GetClusterListMsg.Size(m)
@@ -346,8 +392,8 @@ func (m *GetClusterListReply) XXX_Unmarshal(b []byte) error {
 func (m *GetClusterListReply) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	return xxx_messageInfo_GetClusterListReply.Marshal(b, m, deterministic)
 }
-func (m *GetClusterListReply) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_GetClusterListReply.Merge(m, src)
+func (dst *GetClusterListReply) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_GetClusterListReply.Merge(dst, src)
 }
 func (m *GetClusterListReply) XXX_Size() int {
 	return xxx_messageInfo_GetClusterListReply.Size(m)
@@ -396,8 +442,8 @@ func (m *ClusterItem) XXX_Unmarshal(b []byte) error {
 func (m *ClusterItem) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	return xxx_messageInfo_ClusterItem.Marshal(b, m, deterministic)
 }
-func (m *ClusterItem) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_ClusterItem.Merge(m, src)
+func (dst *ClusterItem) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_ClusterItem.Merge(dst, src)
 }
 func (m *ClusterItem) XXX_Size() int {
 	return xxx_messageInfo_ClusterItem.Size(m)
@@ -455,8 +501,8 @@ func (m *ClusterDetailItem) XXX_Unmarshal(b []byte) error {
 func (m *ClusterDetailItem) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	return xxx_messageInfo_ClusterDetailItem.Marshal(b, m, deterministic)
 }
-func (m *ClusterDetailItem) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_ClusterDetailItem.Merge(m, src)
+func (dst *ClusterDetailItem) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_ClusterDetailItem.Merge(dst, src)
 }
 func (m *ClusterDetailItem) XXX_Size() int {
 	return xxx_messageInfo_ClusterDetailItem.Size(m)
@@ -495,83 +541,56 @@ func (m *ClusterDetailItem) GetKubeconfig() string {
 	return ""
 }
 
-type CreateClusterProviderSpec struct {
-	// What is the provider - like vmware
+type KubernetesLabel struct {
+	// The name of a label
 	Name string `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
-	// The version of Kubernetes for worker nodes. Control plane versions are determined by the MachineSpec.
-	K8SVersion string `protobuf:"bytes,2,opt,name=k8s_version,json=k8sVersion,proto3" json:"k8s_version,omitempty"`
-	// The VMWare specification
-	Vmware *CreateClusterVMWareSpec `protobuf:"bytes,3,opt,name=vmware,proto3" json:"vmware,omitempty"`
-	// Whether or not the cluster is HA
-	HighAvailability bool `protobuf:"varint,4,opt,name=high_availability,json=highAvailability,proto3" json:"high_availability,omitempty"`
-	// The fabric to be used
-	NetworkFabric        string   `protobuf:"bytes,5,opt,name=network_fabric,json=networkFabric,proto3" json:"network_fabric,omitempty"`
+	// The value of a label
+	Value                string   `protobuf:"bytes,2,opt,name=value,proto3" json:"value,omitempty"`
 	XXX_NoUnkeyedLiteral struct{} `json:"-"`
 	XXX_unrecognized     []byte   `json:"-"`
 	XXX_sizecache        int32    `json:"-"`
 }
 
-func (m *CreateClusterProviderSpec) Reset()         { *m = CreateClusterProviderSpec{} }
-func (m *CreateClusterProviderSpec) String() string { return proto.CompactTextString(m) }
-func (*CreateClusterProviderSpec) ProtoMessage()    {}
-func (*CreateClusterProviderSpec) Descriptor() ([]byte, []int) {
+func (m *KubernetesLabel) Reset()         { *m = KubernetesLabel{} }
+func (m *KubernetesLabel) String() string { return proto.CompactTextString(m) }
+func (*KubernetesLabel) ProtoMessage()    {}
+func (*KubernetesLabel) Descriptor() ([]byte, []int) {
 	return fileDescriptor_00212fb1f9d3bf1c, []int{10}
 }
-func (m *CreateClusterProviderSpec) XXX_Unmarshal(b []byte) error {
-	return xxx_messageInfo_CreateClusterProviderSpec.Unmarshal(m, b)
+func (m *KubernetesLabel) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_KubernetesLabel.Unmarshal(m, b)
 }
-func (m *CreateClusterProviderSpec) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
-	return xxx_messageInfo_CreateClusterProviderSpec.Marshal(b, m, deterministic)
+func (m *KubernetesLabel) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_KubernetesLabel.Marshal(b, m, deterministic)
 }
-func (m *CreateClusterProviderSpec) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_CreateClusterProviderSpec.Merge(m, src)
+func (dst *KubernetesLabel) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_KubernetesLabel.Merge(dst, src)
 }
-func (m *CreateClusterProviderSpec) XXX_Size() int {
-	return xxx_messageInfo_CreateClusterProviderSpec.Size(m)
+func (m *KubernetesLabel) XXX_Size() int {
+	return xxx_messageInfo_KubernetesLabel.Size(m)
 }
-func (m *CreateClusterProviderSpec) XXX_DiscardUnknown() {
-	xxx_messageInfo_CreateClusterProviderSpec.DiscardUnknown(m)
+func (m *KubernetesLabel) XXX_DiscardUnknown() {
+	xxx_messageInfo_KubernetesLabel.DiscardUnknown(m)
 }
 
-var xxx_messageInfo_CreateClusterProviderSpec proto.InternalMessageInfo
+var xxx_messageInfo_KubernetesLabel proto.InternalMessageInfo
 
-func (m *CreateClusterProviderSpec) GetName() string {
+func (m *KubernetesLabel) GetName() string {
 	if m != nil {
 		return m.Name
 	}
 	return ""
 }
 
-func (m *CreateClusterProviderSpec) GetK8SVersion() string {
+func (m *KubernetesLabel) GetValue() string {
 	if m != nil {
-		return m.K8SVersion
+		return m.Value
 	}
 	return ""
 }
 
-func (m *CreateClusterProviderSpec) GetVmware() *CreateClusterVMWareSpec {
-	if m != nil {
-		return m.Vmware
-	}
-	return nil
-}
-
-func (m *CreateClusterProviderSpec) GetHighAvailability() bool {
-	if m != nil {
-		return m.HighAvailability
-	}
-	return false
-}
-
-func (m *CreateClusterProviderSpec) GetNetworkFabric() string {
-	if m != nil {
-		return m.NetworkFabric
-	}
-	return ""
-}
-
-// The credentials to use for creating the cluster
-type MachineSpec struct {
+// The specification for a specific node
+type VMWareMachineSpec struct {
 	// The username for SSH access
 	Username string `protobuf:"bytes,1,opt,name=username,proto3" json:"username,omitempty"`
 	// The host for SSH access
@@ -579,117 +598,69 @@ type MachineSpec struct {
 	// The port for SSH access
 	Port int32 `protobuf:"varint,3,opt,name=port,proto3" json:"port,omitempty"`
 	// The k8s version for the control plane. This node is only a master if this field is defined.
-	ControlPlaneVersion  string   `protobuf:"bytes,4,opt,name=control_plane_version,json=controlPlaneVersion,proto3" json:"control_plane_version,omitempty"`
-	XXX_NoUnkeyedLiteral struct{} `json:"-"`
-	XXX_unrecognized     []byte   `json:"-"`
-	XXX_sizecache        int32    `json:"-"`
+	Password string `protobuf:"bytes,4,opt,name=password,proto3" json:"password,omitempty"`
+	// The labels for the machines
+	Labels               []*KubernetesLabel `protobuf:"bytes,5,rep,name=labels,proto3" json:"labels,omitempty"`
+	XXX_NoUnkeyedLiteral struct{}           `json:"-"`
+	XXX_unrecognized     []byte             `json:"-"`
+	XXX_sizecache        int32              `json:"-"`
 }
 
-func (m *MachineSpec) Reset()         { *m = MachineSpec{} }
-func (m *MachineSpec) String() string { return proto.CompactTextString(m) }
-func (*MachineSpec) ProtoMessage()    {}
-func (*MachineSpec) Descriptor() ([]byte, []int) {
+func (m *VMWareMachineSpec) Reset()         { *m = VMWareMachineSpec{} }
+func (m *VMWareMachineSpec) String() string { return proto.CompactTextString(m) }
+func (*VMWareMachineSpec) ProtoMessage()    {}
+func (*VMWareMachineSpec) Descriptor() ([]byte, []int) {
 	return fileDescriptor_00212fb1f9d3bf1c, []int{11}
 }
-func (m *MachineSpec) XXX_Unmarshal(b []byte) error {
-	return xxx_messageInfo_MachineSpec.Unmarshal(m, b)
+func (m *VMWareMachineSpec) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_VMWareMachineSpec.Unmarshal(m, b)
 }
-func (m *MachineSpec) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
-	return xxx_messageInfo_MachineSpec.Marshal(b, m, deterministic)
+func (m *VMWareMachineSpec) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_VMWareMachineSpec.Marshal(b, m, deterministic)
 }
-func (m *MachineSpec) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_MachineSpec.Merge(m, src)
+func (dst *VMWareMachineSpec) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_VMWareMachineSpec.Merge(dst, src)
 }
-func (m *MachineSpec) XXX_Size() int {
-	return xxx_messageInfo_MachineSpec.Size(m)
+func (m *VMWareMachineSpec) XXX_Size() int {
+	return xxx_messageInfo_VMWareMachineSpec.Size(m)
 }
-func (m *MachineSpec) XXX_DiscardUnknown() {
-	xxx_messageInfo_MachineSpec.DiscardUnknown(m)
+func (m *VMWareMachineSpec) XXX_DiscardUnknown() {
+	xxx_messageInfo_VMWareMachineSpec.DiscardUnknown(m)
 }
 
-var xxx_messageInfo_MachineSpec proto.InternalMessageInfo
+var xxx_messageInfo_VMWareMachineSpec proto.InternalMessageInfo
 
-func (m *MachineSpec) GetUsername() string {
+func (m *VMWareMachineSpec) GetUsername() string {
 	if m != nil {
 		return m.Username
 	}
 	return ""
 }
 
-func (m *MachineSpec) GetHost() string {
+func (m *VMWareMachineSpec) GetHost() string {
 	if m != nil {
 		return m.Host
 	}
 	return ""
 }
 
-func (m *MachineSpec) GetPort() int32 {
+func (m *VMWareMachineSpec) GetPort() int32 {
 	if m != nil {
 		return m.Port
 	}
 	return 0
 }
 
-func (m *MachineSpec) GetControlPlaneVersion() string {
+func (m *VMWareMachineSpec) GetPassword() string {
 	if m != nil {
-		return m.ControlPlaneVersion
+		return m.Password
 	}
 	return ""
 }
 
-type CreateClusterVMWareSpec struct {
-	// This namespace along with the clustername with CreateClusterProviderSpec uniquely identify a managed cluster
-	Namespace string `protobuf:"bytes,1,opt,name=namespace,proto3" json:"namespace,omitempty"`
-	// Private key for all nodes in the cluster; note that in the Cluster API SSH provider these can be specified independently.
-	PrivateKey string `protobuf:"bytes,2,opt,name=private_key,json=privateKey,proto3" json:"private_key,omitempty"`
-	// Machines which comprise the cluster
-	Machines             []*MachineSpec `protobuf:"bytes,3,rep,name=machines,proto3" json:"machines,omitempty"`
-	XXX_NoUnkeyedLiteral struct{}       `json:"-"`
-	XXX_unrecognized     []byte         `json:"-"`
-	XXX_sizecache        int32          `json:"-"`
-}
-
-func (m *CreateClusterVMWareSpec) Reset()         { *m = CreateClusterVMWareSpec{} }
-func (m *CreateClusterVMWareSpec) String() string { return proto.CompactTextString(m) }
-func (*CreateClusterVMWareSpec) ProtoMessage()    {}
-func (*CreateClusterVMWareSpec) Descriptor() ([]byte, []int) {
-	return fileDescriptor_00212fb1f9d3bf1c, []int{12}
-}
-func (m *CreateClusterVMWareSpec) XXX_Unmarshal(b []byte) error {
-	return xxx_messageInfo_CreateClusterVMWareSpec.Unmarshal(m, b)
-}
-func (m *CreateClusterVMWareSpec) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
-	return xxx_messageInfo_CreateClusterVMWareSpec.Marshal(b, m, deterministic)
-}
-func (m *CreateClusterVMWareSpec) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_CreateClusterVMWareSpec.Merge(m, src)
-}
-func (m *CreateClusterVMWareSpec) XXX_Size() int {
-	return xxx_messageInfo_CreateClusterVMWareSpec.Size(m)
-}
-func (m *CreateClusterVMWareSpec) XXX_DiscardUnknown() {
-	xxx_messageInfo_CreateClusterVMWareSpec.DiscardUnknown(m)
-}
-
-var xxx_messageInfo_CreateClusterVMWareSpec proto.InternalMessageInfo
-
-func (m *CreateClusterVMWareSpec) GetNamespace() string {
+func (m *VMWareMachineSpec) GetLabels() []*KubernetesLabel {
 	if m != nil {
-		return m.Namespace
-	}
-	return ""
-}
-
-func (m *CreateClusterVMWareSpec) GetPrivateKey() string {
-	if m != nil {
-		return m.PrivateKey
-	}
-	return ""
-}
-
-func (m *CreateClusterVMWareSpec) GetMachines() []*MachineSpec {
-	if m != nil {
-		return m.Machines
+		return m.Labels
 	}
 	return nil
 }
@@ -705,7 +676,7 @@ func (m *GetVersionMsg) Reset()         { *m = GetVersionMsg{} }
 func (m *GetVersionMsg) String() string { return proto.CompactTextString(m) }
 func (*GetVersionMsg) ProtoMessage()    {}
 func (*GetVersionMsg) Descriptor() ([]byte, []int) {
-	return fileDescriptor_00212fb1f9d3bf1c, []int{13}
+	return fileDescriptor_00212fb1f9d3bf1c, []int{12}
 }
 func (m *GetVersionMsg) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_GetVersionMsg.Unmarshal(m, b)
@@ -713,8 +684,8 @@ func (m *GetVersionMsg) XXX_Unmarshal(b []byte) error {
 func (m *GetVersionMsg) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	return xxx_messageInfo_GetVersionMsg.Marshal(b, m, deterministic)
 }
-func (m *GetVersionMsg) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_GetVersionMsg.Merge(m, src)
+func (dst *GetVersionMsg) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_GetVersionMsg.Merge(dst, src)
 }
 func (m *GetVersionMsg) XXX_Size() int {
 	return xxx_messageInfo_GetVersionMsg.Size(m)
@@ -740,7 +711,7 @@ func (m *GetVersionReply) Reset()         { *m = GetVersionReply{} }
 func (m *GetVersionReply) String() string { return proto.CompactTextString(m) }
 func (*GetVersionReply) ProtoMessage()    {}
 func (*GetVersionReply) Descriptor() ([]byte, []int) {
-	return fileDescriptor_00212fb1f9d3bf1c, []int{14}
+	return fileDescriptor_00212fb1f9d3bf1c, []int{13}
 }
 func (m *GetVersionReply) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_GetVersionReply.Unmarshal(m, b)
@@ -748,8 +719,8 @@ func (m *GetVersionReply) XXX_Unmarshal(b []byte) error {
 func (m *GetVersionReply) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	return xxx_messageInfo_GetVersionReply.Marshal(b, m, deterministic)
 }
-func (m *GetVersionReply) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_GetVersionReply.Merge(m, src)
+func (dst *GetVersionReply) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_GetVersionReply.Merge(dst, src)
 }
 func (m *GetVersionReply) XXX_Size() int {
 	return xxx_messageInfo_GetVersionReply.Size(m)
@@ -798,7 +769,7 @@ func (m *GetVersionReply_VersionInformation) Reset()         { *m = GetVersionRe
 func (m *GetVersionReply_VersionInformation) String() string { return proto.CompactTextString(m) }
 func (*GetVersionReply_VersionInformation) ProtoMessage()    {}
 func (*GetVersionReply_VersionInformation) Descriptor() ([]byte, []int) {
-	return fileDescriptor_00212fb1f9d3bf1c, []int{14, 0}
+	return fileDescriptor_00212fb1f9d3bf1c, []int{13, 0}
 }
 func (m *GetVersionReply_VersionInformation) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_GetVersionReply_VersionInformation.Unmarshal(m, b)
@@ -806,8 +777,8 @@ func (m *GetVersionReply_VersionInformation) XXX_Unmarshal(b []byte) error {
 func (m *GetVersionReply_VersionInformation) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	return xxx_messageInfo_GetVersionReply_VersionInformation.Marshal(b, m, deterministic)
 }
-func (m *GetVersionReply_VersionInformation) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_GetVersionReply_VersionInformation.Merge(m, src)
+func (dst *GetVersionReply_VersionInformation) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_GetVersionReply_VersionInformation.Merge(dst, src)
 }
 func (m *GetVersionReply_VersionInformation) XXX_Size() int {
 	return xxx_messageInfo_GetVersionReply_VersionInformation.Size(m)
@@ -867,6 +838,317 @@ func (m *GetVersionReply_VersionInformation) GetPlatform() string {
 	return ""
 }
 
+type GetUpgradeClusterInformationMsg struct {
+	// What is the cluster that we are considering for upgrade
+	Name                 string   `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
+}
+
+func (m *GetUpgradeClusterInformationMsg) Reset()         { *m = GetUpgradeClusterInformationMsg{} }
+func (m *GetUpgradeClusterInformationMsg) String() string { return proto.CompactTextString(m) }
+func (*GetUpgradeClusterInformationMsg) ProtoMessage()    {}
+func (*GetUpgradeClusterInformationMsg) Descriptor() ([]byte, []int) {
+	return fileDescriptor_00212fb1f9d3bf1c, []int{14}
+}
+func (m *GetUpgradeClusterInformationMsg) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_GetUpgradeClusterInformationMsg.Unmarshal(m, b)
+}
+func (m *GetUpgradeClusterInformationMsg) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_GetUpgradeClusterInformationMsg.Marshal(b, m, deterministic)
+}
+func (dst *GetUpgradeClusterInformationMsg) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_GetUpgradeClusterInformationMsg.Merge(dst, src)
+}
+func (m *GetUpgradeClusterInformationMsg) XXX_Size() int {
+	return xxx_messageInfo_GetUpgradeClusterInformationMsg.Size(m)
+}
+func (m *GetUpgradeClusterInformationMsg) XXX_DiscardUnknown() {
+	xxx_messageInfo_GetUpgradeClusterInformationMsg.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_GetUpgradeClusterInformationMsg proto.InternalMessageInfo
+
+func (m *GetUpgradeClusterInformationMsg) GetName() string {
+	if m != nil {
+		return m.Name
+	}
+	return ""
+}
+
+type GetUpgradeClusterInformationReply struct {
+	// Can the cluster be upgraded
+	Ok bool `protobuf:"varint,1,opt,name=ok,proto3" json:"ok,omitempty"`
+	// What versions are possible right now
+	Versions             []string `protobuf:"bytes,2,rep,name=versions,proto3" json:"versions,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
+}
+
+func (m *GetUpgradeClusterInformationReply) Reset()         { *m = GetUpgradeClusterInformationReply{} }
+func (m *GetUpgradeClusterInformationReply) String() string { return proto.CompactTextString(m) }
+func (*GetUpgradeClusterInformationReply) ProtoMessage()    {}
+func (*GetUpgradeClusterInformationReply) Descriptor() ([]byte, []int) {
+	return fileDescriptor_00212fb1f9d3bf1c, []int{15}
+}
+func (m *GetUpgradeClusterInformationReply) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_GetUpgradeClusterInformationReply.Unmarshal(m, b)
+}
+func (m *GetUpgradeClusterInformationReply) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_GetUpgradeClusterInformationReply.Marshal(b, m, deterministic)
+}
+func (dst *GetUpgradeClusterInformationReply) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_GetUpgradeClusterInformationReply.Merge(dst, src)
+}
+func (m *GetUpgradeClusterInformationReply) XXX_Size() int {
+	return xxx_messageInfo_GetUpgradeClusterInformationReply.Size(m)
+}
+func (m *GetUpgradeClusterInformationReply) XXX_DiscardUnknown() {
+	xxx_messageInfo_GetUpgradeClusterInformationReply.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_GetUpgradeClusterInformationReply proto.InternalMessageInfo
+
+func (m *GetUpgradeClusterInformationReply) GetOk() bool {
+	if m != nil {
+		return m.Ok
+	}
+	return false
+}
+
+func (m *GetUpgradeClusterInformationReply) GetVersions() []string {
+	if m != nil {
+		return m.Versions
+	}
+	return nil
+}
+
+type UpgradeClusterMsg struct {
+	// What is the cluster that we are considering for upgrade
+	Name string `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
+	// What version are we upgrading to?
+	Version              string   `protobuf:"bytes,2,opt,name=version,proto3" json:"version,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
+}
+
+func (m *UpgradeClusterMsg) Reset()         { *m = UpgradeClusterMsg{} }
+func (m *UpgradeClusterMsg) String() string { return proto.CompactTextString(m) }
+func (*UpgradeClusterMsg) ProtoMessage()    {}
+func (*UpgradeClusterMsg) Descriptor() ([]byte, []int) {
+	return fileDescriptor_00212fb1f9d3bf1c, []int{16}
+}
+func (m *UpgradeClusterMsg) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_UpgradeClusterMsg.Unmarshal(m, b)
+}
+func (m *UpgradeClusterMsg) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_UpgradeClusterMsg.Marshal(b, m, deterministic)
+}
+func (dst *UpgradeClusterMsg) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_UpgradeClusterMsg.Merge(dst, src)
+}
+func (m *UpgradeClusterMsg) XXX_Size() int {
+	return xxx_messageInfo_UpgradeClusterMsg.Size(m)
+}
+func (m *UpgradeClusterMsg) XXX_DiscardUnknown() {
+	xxx_messageInfo_UpgradeClusterMsg.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_UpgradeClusterMsg proto.InternalMessageInfo
+
+func (m *UpgradeClusterMsg) GetName() string {
+	if m != nil {
+		return m.Name
+	}
+	return ""
+}
+
+func (m *UpgradeClusterMsg) GetVersion() string {
+	if m != nil {
+		return m.Version
+	}
+	return ""
+}
+
+type UpgradeClusterReply struct {
+	// Was this a successful request
+	Ok                   bool     `protobuf:"varint,1,opt,name=ok,proto3" json:"ok,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
+}
+
+func (m *UpgradeClusterReply) Reset()         { *m = UpgradeClusterReply{} }
+func (m *UpgradeClusterReply) String() string { return proto.CompactTextString(m) }
+func (*UpgradeClusterReply) ProtoMessage()    {}
+func (*UpgradeClusterReply) Descriptor() ([]byte, []int) {
+	return fileDescriptor_00212fb1f9d3bf1c, []int{17}
+}
+func (m *UpgradeClusterReply) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_UpgradeClusterReply.Unmarshal(m, b)
+}
+func (m *UpgradeClusterReply) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_UpgradeClusterReply.Marshal(b, m, deterministic)
+}
+func (dst *UpgradeClusterReply) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_UpgradeClusterReply.Merge(dst, src)
+}
+func (m *UpgradeClusterReply) XXX_Size() int {
+	return xxx_messageInfo_UpgradeClusterReply.Size(m)
+}
+func (m *UpgradeClusterReply) XXX_DiscardUnknown() {
+	xxx_messageInfo_UpgradeClusterReply.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_UpgradeClusterReply proto.InternalMessageInfo
+
+func (m *UpgradeClusterReply) GetOk() bool {
+	if m != nil {
+		return m.Ok
+	}
+	return false
+}
+
+type AdjustClusterMsg struct {
+	// What is the cluster that we are considering for upgrade
+	Name string `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
+	// Machines which we want to add to the cluster
+	AddNodes []*VMWareMachineSpec `protobuf:"bytes,2,rep,name=add_nodes,json=addNodes,proto3" json:"add_nodes,omitempty"`
+	// Machines which we want to remove from the cluster
+	RemoveNodes          []*AdjustClusterMsg_VMWareRemoveMachineSpec `protobuf:"bytes,3,rep,name=remove_nodes,json=removeNodes,proto3" json:"remove_nodes,omitempty"`
+	XXX_NoUnkeyedLiteral struct{}                                    `json:"-"`
+	XXX_unrecognized     []byte                                      `json:"-"`
+	XXX_sizecache        int32                                       `json:"-"`
+}
+
+func (m *AdjustClusterMsg) Reset()         { *m = AdjustClusterMsg{} }
+func (m *AdjustClusterMsg) String() string { return proto.CompactTextString(m) }
+func (*AdjustClusterMsg) ProtoMessage()    {}
+func (*AdjustClusterMsg) Descriptor() ([]byte, []int) {
+	return fileDescriptor_00212fb1f9d3bf1c, []int{18}
+}
+func (m *AdjustClusterMsg) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_AdjustClusterMsg.Unmarshal(m, b)
+}
+func (m *AdjustClusterMsg) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_AdjustClusterMsg.Marshal(b, m, deterministic)
+}
+func (dst *AdjustClusterMsg) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_AdjustClusterMsg.Merge(dst, src)
+}
+func (m *AdjustClusterMsg) XXX_Size() int {
+	return xxx_messageInfo_AdjustClusterMsg.Size(m)
+}
+func (m *AdjustClusterMsg) XXX_DiscardUnknown() {
+	xxx_messageInfo_AdjustClusterMsg.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_AdjustClusterMsg proto.InternalMessageInfo
+
+func (m *AdjustClusterMsg) GetName() string {
+	if m != nil {
+		return m.Name
+	}
+	return ""
+}
+
+func (m *AdjustClusterMsg) GetAddNodes() []*VMWareMachineSpec {
+	if m != nil {
+		return m.AddNodes
+	}
+	return nil
+}
+
+func (m *AdjustClusterMsg) GetRemoveNodes() []*AdjustClusterMsg_VMWareRemoveMachineSpec {
+	if m != nil {
+		return m.RemoveNodes
+	}
+	return nil
+}
+
+type AdjustClusterMsg_VMWareRemoveMachineSpec struct {
+	// The host for SSH access
+	Host                 string   `protobuf:"bytes,1,opt,name=host,proto3" json:"host,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
+}
+
+func (m *AdjustClusterMsg_VMWareRemoveMachineSpec) Reset() {
+	*m = AdjustClusterMsg_VMWareRemoveMachineSpec{}
+}
+func (m *AdjustClusterMsg_VMWareRemoveMachineSpec) String() string { return proto.CompactTextString(m) }
+func (*AdjustClusterMsg_VMWareRemoveMachineSpec) ProtoMessage()    {}
+func (*AdjustClusterMsg_VMWareRemoveMachineSpec) Descriptor() ([]byte, []int) {
+	return fileDescriptor_00212fb1f9d3bf1c, []int{18, 0}
+}
+func (m *AdjustClusterMsg_VMWareRemoveMachineSpec) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_AdjustClusterMsg_VMWareRemoveMachineSpec.Unmarshal(m, b)
+}
+func (m *AdjustClusterMsg_VMWareRemoveMachineSpec) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_AdjustClusterMsg_VMWareRemoveMachineSpec.Marshal(b, m, deterministic)
+}
+func (dst *AdjustClusterMsg_VMWareRemoveMachineSpec) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_AdjustClusterMsg_VMWareRemoveMachineSpec.Merge(dst, src)
+}
+func (m *AdjustClusterMsg_VMWareRemoveMachineSpec) XXX_Size() int {
+	return xxx_messageInfo_AdjustClusterMsg_VMWareRemoveMachineSpec.Size(m)
+}
+func (m *AdjustClusterMsg_VMWareRemoveMachineSpec) XXX_DiscardUnknown() {
+	xxx_messageInfo_AdjustClusterMsg_VMWareRemoveMachineSpec.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_AdjustClusterMsg_VMWareRemoveMachineSpec proto.InternalMessageInfo
+
+func (m *AdjustClusterMsg_VMWareRemoveMachineSpec) GetHost() string {
+	if m != nil {
+		return m.Host
+	}
+	return ""
+}
+
+type AdjustClusterReply struct {
+	// Was this a successful request
+	Ok                   bool     `protobuf:"varint,1,opt,name=ok,proto3" json:"ok,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
+}
+
+func (m *AdjustClusterReply) Reset()         { *m = AdjustClusterReply{} }
+func (m *AdjustClusterReply) String() string { return proto.CompactTextString(m) }
+func (*AdjustClusterReply) ProtoMessage()    {}
+func (*AdjustClusterReply) Descriptor() ([]byte, []int) {
+	return fileDescriptor_00212fb1f9d3bf1c, []int{19}
+}
+func (m *AdjustClusterReply) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_AdjustClusterReply.Unmarshal(m, b)
+}
+func (m *AdjustClusterReply) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_AdjustClusterReply.Marshal(b, m, deterministic)
+}
+func (dst *AdjustClusterReply) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_AdjustClusterReply.Merge(dst, src)
+}
+func (m *AdjustClusterReply) XXX_Size() int {
+	return xxx_messageInfo_AdjustClusterReply.Size(m)
+}
+func (m *AdjustClusterReply) XXX_DiscardUnknown() {
+	xxx_messageInfo_AdjustClusterReply.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_AdjustClusterReply proto.InternalMessageInfo
+
+func (m *AdjustClusterReply) GetOk() bool {
+	if m != nil {
+		return m.Ok
+	}
+	return false
+}
+
 func init() {
 	proto.RegisterType((*CreateClusterMsg)(nil), "cmavmware.CreateClusterMsg")
 	proto.RegisterType((*CreateClusterReply)(nil), "cmavmware.CreateClusterReply")
@@ -878,12 +1160,18 @@ func init() {
 	proto.RegisterType((*GetClusterListReply)(nil), "cmavmware.GetClusterListReply")
 	proto.RegisterType((*ClusterItem)(nil), "cmavmware.ClusterItem")
 	proto.RegisterType((*ClusterDetailItem)(nil), "cmavmware.ClusterDetailItem")
-	proto.RegisterType((*CreateClusterProviderSpec)(nil), "cmavmware.CreateClusterProviderSpec")
-	proto.RegisterType((*MachineSpec)(nil), "cmavmware.MachineSpec")
-	proto.RegisterType((*CreateClusterVMWareSpec)(nil), "cmavmware.CreateClusterVMWareSpec")
+	proto.RegisterType((*KubernetesLabel)(nil), "cmavmware.KubernetesLabel")
+	proto.RegisterType((*VMWareMachineSpec)(nil), "cmavmware.VMWareMachineSpec")
 	proto.RegisterType((*GetVersionMsg)(nil), "cmavmware.GetVersionMsg")
 	proto.RegisterType((*GetVersionReply)(nil), "cmavmware.GetVersionReply")
 	proto.RegisterType((*GetVersionReply_VersionInformation)(nil), "cmavmware.GetVersionReply.VersionInformation")
+	proto.RegisterType((*GetUpgradeClusterInformationMsg)(nil), "cmavmware.GetUpgradeClusterInformationMsg")
+	proto.RegisterType((*GetUpgradeClusterInformationReply)(nil), "cmavmware.GetUpgradeClusterInformationReply")
+	proto.RegisterType((*UpgradeClusterMsg)(nil), "cmavmware.UpgradeClusterMsg")
+	proto.RegisterType((*UpgradeClusterReply)(nil), "cmavmware.UpgradeClusterReply")
+	proto.RegisterType((*AdjustClusterMsg)(nil), "cmavmware.AdjustClusterMsg")
+	proto.RegisterType((*AdjustClusterMsg_VMWareRemoveMachineSpec)(nil), "cmavmware.AdjustClusterMsg.VMWareRemoveMachineSpec")
+	proto.RegisterType((*AdjustClusterReply)(nil), "cmavmware.AdjustClusterReply")
 }
 
 // Reference imports to suppress errors if they are not otherwise used.
@@ -908,6 +1196,12 @@ type ClusterClient interface {
 	GetClusterList(ctx context.Context, in *GetClusterListMsg, opts ...grpc.CallOption) (*GetClusterListReply, error)
 	// Will return version information about api server
 	GetVersionInformation(ctx context.Context, in *GetVersionMsg, opts ...grpc.CallOption) (*GetVersionReply, error)
+	// Will adjust a provision a cluster
+	AdjustClusterNodes(ctx context.Context, in *AdjustClusterMsg, opts ...grpc.CallOption) (*AdjustClusterReply, error)
+	// Will return upgrade options for a given cluster
+	GetUpgradeClusterInformation(ctx context.Context, in *GetUpgradeClusterInformationMsg, opts ...grpc.CallOption) (*GetUpgradeClusterInformationReply, error)
+	// Will attempt to upgrade a cluster
+	UpgradeCluster(ctx context.Context, in *UpgradeClusterMsg, opts ...grpc.CallOption) (*UpgradeClusterReply, error)
 }
 
 type clusterClient struct {
@@ -963,6 +1257,33 @@ func (c *clusterClient) GetVersionInformation(ctx context.Context, in *GetVersio
 	return out, nil
 }
 
+func (c *clusterClient) AdjustClusterNodes(ctx context.Context, in *AdjustClusterMsg, opts ...grpc.CallOption) (*AdjustClusterReply, error) {
+	out := new(AdjustClusterReply)
+	err := c.cc.Invoke(ctx, "/cmavmware.Cluster/AdjustClusterNodes", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *clusterClient) GetUpgradeClusterInformation(ctx context.Context, in *GetUpgradeClusterInformationMsg, opts ...grpc.CallOption) (*GetUpgradeClusterInformationReply, error) {
+	out := new(GetUpgradeClusterInformationReply)
+	err := c.cc.Invoke(ctx, "/cmavmware.Cluster/GetUpgradeClusterInformation", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *clusterClient) UpgradeCluster(ctx context.Context, in *UpgradeClusterMsg, opts ...grpc.CallOption) (*UpgradeClusterReply, error) {
+	out := new(UpgradeClusterReply)
+	err := c.cc.Invoke(ctx, "/cmavmware.Cluster/UpgradeCluster", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // ClusterServer is the server API for Cluster service.
 type ClusterServer interface {
 	// Will provision a cluster
@@ -975,6 +1296,12 @@ type ClusterServer interface {
 	GetClusterList(context.Context, *GetClusterListMsg) (*GetClusterListReply, error)
 	// Will return version information about api server
 	GetVersionInformation(context.Context, *GetVersionMsg) (*GetVersionReply, error)
+	// Will adjust a provision a cluster
+	AdjustClusterNodes(context.Context, *AdjustClusterMsg) (*AdjustClusterReply, error)
+	// Will return upgrade options for a given cluster
+	GetUpgradeClusterInformation(context.Context, *GetUpgradeClusterInformationMsg) (*GetUpgradeClusterInformationReply, error)
+	// Will attempt to upgrade a cluster
+	UpgradeCluster(context.Context, *UpgradeClusterMsg) (*UpgradeClusterReply, error)
 }
 
 func RegisterClusterServer(s *grpc.Server, srv ClusterServer) {
@@ -1071,6 +1398,60 @@ func _Cluster_GetVersionInformation_Handler(srv interface{}, ctx context.Context
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Cluster_AdjustClusterNodes_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(AdjustClusterMsg)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ClusterServer).AdjustClusterNodes(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/cmavmware.Cluster/AdjustClusterNodes",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ClusterServer).AdjustClusterNodes(ctx, req.(*AdjustClusterMsg))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Cluster_GetUpgradeClusterInformation_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetUpgradeClusterInformationMsg)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ClusterServer).GetUpgradeClusterInformation(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/cmavmware.Cluster/GetUpgradeClusterInformation",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ClusterServer).GetUpgradeClusterInformation(ctx, req.(*GetUpgradeClusterInformationMsg))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Cluster_UpgradeCluster_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UpgradeClusterMsg)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ClusterServer).UpgradeCluster(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/cmavmware.Cluster/UpgradeCluster",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ClusterServer).UpgradeCluster(ctx, req.(*UpgradeClusterMsg))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 var _Cluster_serviceDesc = grpc.ServiceDesc{
 	ServiceName: "cmavmware.Cluster",
 	HandlerType: (*ClusterServer)(nil),
@@ -1095,6 +1476,18 @@ var _Cluster_serviceDesc = grpc.ServiceDesc{
 			MethodName: "GetVersionInformation",
 			Handler:    _Cluster_GetVersionInformation_Handler,
 		},
+		{
+			MethodName: "AdjustClusterNodes",
+			Handler:    _Cluster_AdjustClusterNodes_Handler,
+		},
+		{
+			MethodName: "GetUpgradeClusterInformation",
+			Handler:    _Cluster_GetUpgradeClusterInformation_Handler,
+		},
+		{
+			MethodName: "UpgradeCluster",
+			Handler:    _Cluster_UpgradeCluster_Handler,
+		},
 	},
 	Streams:  []grpc.StreamDesc{},
 	Metadata: "api.proto",
@@ -1103,69 +1496,83 @@ var _Cluster_serviceDesc = grpc.ServiceDesc{
 func init() { proto.RegisterFile("api.proto", fileDescriptor_00212fb1f9d3bf1c) }
 
 var fileDescriptor_00212fb1f9d3bf1c = []byte{
-	// 1014 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xa4, 0x56, 0xdd, 0x6e, 0x1b, 0x45,
-	0x14, 0x96, 0xb7, 0xf9, 0xb1, 0x4f, 0xc8, 0xdf, 0xa4, 0x4d, 0xcd, 0x92, 0x16, 0xb3, 0x14, 0x54,
-	0x85, 0xda, 0x9b, 0x1a, 0x09, 0x55, 0x11, 0x17, 0x0d, 0x89, 0x80, 0x08, 0x2c, 0x85, 0x2d, 0x0a,
-	0x2a, 0x48, 0x58, 0xe3, 0xf5, 0x64, 0x3c, 0x78, 0x77, 0x67, 0x35, 0x33, 0x76, 0x14, 0x2e, 0xb8,
-	0x40, 0x20, 0x21, 0xc1, 0x15, 0x3c, 0x1a, 0x2f, 0xc0, 0x05, 0x0f, 0xc0, 0x05, 0x0f, 0x80, 0x66,
-	0x76, 0xd6, 0xde, 0xf5, 0x4f, 0x2b, 0xd4, 0x2b, 0xef, 0x9c, 0x73, 0xf6, 0x7c, 0xdf, 0xf9, 0xe6,
-	0x9c, 0xe3, 0x85, 0x1a, 0x4e, 0x59, 0x2b, 0x15, 0x5c, 0x71, 0x54, 0x0b, 0x63, 0x3c, 0x8e, 0xaf,
-	0xb1, 0x20, 0xee, 0x01, 0xe5, 0x9c, 0x46, 0xc4, 0xc7, 0x29, 0xf3, 0x71, 0x92, 0x70, 0x85, 0x15,
-	0xe3, 0x89, 0xcc, 0x02, 0xdd, 0x47, 0xe6, 0x27, 0x6c, 0x52, 0x92, 0x34, 0xe5, 0x35, 0xa6, 0x94,
-	0x08, 0x9f, 0xa7, 0x26, 0x62, 0x3e, 0xda, 0x1b, 0xc0, 0xce, 0xa9, 0x20, 0x58, 0x91, 0xd3, 0x68,
-	0x24, 0x15, 0x11, 0x1d, 0x49, 0x11, 0x82, 0x95, 0x04, 0xc7, 0xa4, 0x5e, 0x69, 0x54, 0x1e, 0xd6,
-	0x02, 0xf3, 0x8c, 0x9e, 0x42, 0x35, 0x15, 0x7c, 0xcc, 0xfa, 0x44, 0xd4, 0x9d, 0x46, 0xe5, 0xe1,
-	0x46, 0xfb, 0x41, 0x6b, 0xc2, 0xa8, 0x55, 0x4a, 0x71, 0x61, 0xe3, 0x9e, 0xa5, 0x24, 0x0c, 0x26,
-	0x6f, 0x79, 0x97, 0x80, 0x4a, 0x61, 0x01, 0x49, 0xa3, 0x1b, 0xb4, 0x05, 0x0e, 0x1f, 0x1a, 0xa4,
-	0x6a, 0xe0, 0xf0, 0x21, 0x3a, 0x82, 0xf5, 0x30, 0xf3, 0x5b, 0x98, 0xfd, 0x22, 0x4c, 0xe6, 0x39,
-	0x57, 0x24, 0x0e, 0xf2, 0x30, 0xef, 0x6d, 0xd8, 0xfc, 0x84, 0xa8, 0x17, 0xd3, 0xf7, 0x9e, 0xc3,
-	0xf6, 0x34, 0x68, 0x31, 0xf2, 0x07, 0xb3, 0xc8, 0x07, 0xf3, 0xc8, 0x67, 0x44, 0x61, 0x16, 0x95,
-	0xf1, 0xdf, 0x85, 0x9d, 0x33, 0x12, 0x91, 0x97, 0x29, 0xe8, 0x7d, 0x08, 0xa8, 0x14, 0xb7, 0x98,
-	0xc5, 0x3e, 0xac, 0x49, 0x85, 0xd5, 0x48, 0x1a, 0x12, 0xb5, 0xc0, 0x9e, 0xbc, 0x3d, 0xd8, 0x9d,
-	0x16, 0xf0, 0x39, 0x93, 0xaa, 0x23, 0xa9, 0xf7, 0x1c, 0xf6, 0xca, 0xc6, 0xc5, 0x39, 0xdb, 0x50,
-	0xb5, 0x64, 0x75, 0xd6, 0x5b, 0x2f, 0x10, 0x75, 0x12, 0xe7, 0x9d, 0xc3, 0x46, 0xc1, 0xa1, 0x53,
-	0xb2, 0xbe, 0x2d, 0xc7, 0x61, 0xfd, 0x49, 0x81, 0x4e, 0xa1, 0x45, 0xa6, 0xd4, 0x6f, 0x95, 0xa8,
-	0x73, 0xd8, 0x9d, 0x93, 0xef, 0x55, 0x12, 0xa2, 0xfb, 0x00, 0xc3, 0x51, 0x8f, 0x84, 0x3c, 0xb9,
-	0x62, 0xb4, 0xbe, 0x62, 0x7c, 0x05, 0x8b, 0xf7, 0x57, 0x05, 0x5e, 0x5f, 0xda, 0x91, 0x0b, 0xbb,
-	0xfb, 0x4d, 0xd8, 0x18, 0x3e, 0x91, 0xdd, 0x31, 0x11, 0x92, 0xf1, 0xc4, 0x92, 0x80, 0xe1, 0x13,
-	0x79, 0x99, 0x59, 0xd0, 0x31, 0xac, 0x65, 0x72, 0x19, 0x2a, 0x1b, 0x6d, 0x6f, 0x59, 0xf3, 0x5f,
-	0x76, 0xbe, 0xc2, 0x82, 0x98, 0xd6, 0xb7, 0x6f, 0xa0, 0xf7, 0x60, 0x77, 0xc0, 0xe8, 0xa0, 0x8b,
-	0xc7, 0x98, 0x45, 0xb8, 0xc7, 0x22, 0xa6, 0x6e, 0x0c, 0xeb, 0x6a, 0xb0, 0xa3, 0x1d, 0x27, 0x05,
-	0x3b, 0x7a, 0x07, 0xb6, 0x12, 0xa2, 0xae, 0xb9, 0x18, 0x76, 0xaf, 0x70, 0x4f, 0xb0, 0xb0, 0xbe,
-	0x6a, 0xc8, 0x6c, 0x5a, 0xeb, 0xc7, 0xc6, 0xe8, 0xfd, 0x5c, 0x81, 0x8d, 0x0e, 0x0e, 0x07, 0x2c,
-	0x31, 0x58, 0xc8, 0x85, 0xea, 0x48, 0x12, 0x51, 0x28, 0x6c, 0x72, 0xd6, 0x05, 0x0f, 0xb8, 0x54,
-	0xb9, 0xb4, 0xfa, 0x59, 0xdb, 0x52, 0x2e, 0x94, 0xa9, 0x66, 0x35, 0x30, 0xcf, 0xa8, 0x0d, 0x77,
-	0x42, 0x9e, 0x28, 0xc1, 0xa3, 0x6e, 0x1a, 0xe1, 0x84, 0x4c, 0xe4, 0xc8, 0x14, 0xde, 0xb3, 0xce,
-	0x0b, 0xed, 0xb3, 0xba, 0x78, 0xbf, 0x55, 0xe0, 0xee, 0x92, 0xfa, 0xd1, 0x01, 0xd4, 0x34, 0xbe,
-	0x4c, 0x71, 0x98, 0x93, 0x9a, 0x1a, 0xb4, 0xe4, 0xa9, 0x60, 0x63, 0xac, 0x48, 0x77, 0x48, 0x6e,
-	0x72, 0xc9, 0xad, 0xe9, 0x33, 0x72, 0xa3, 0xbb, 0x36, 0xce, 0x2a, 0xd4, 0xf7, 0x3f, 0xdb, 0xb5,
-	0x85, 0xe2, 0x83, 0x49, 0x9c, 0xb7, 0x6d, 0x76, 0x81, 0x25, 0xa7, 0x27, 0xe4, 0x5f, 0xc7, 0x0c,
-	0xbe, 0xb5, 0x2c, 0x1e, 0x8f, 0x6f, 0x61, 0xcf, 0x56, 0xda, 0x65, 0xc9, 0x15, 0x17, 0xb1, 0x59,
-	0x90, 0x76, 0x09, 0x34, 0x0b, 0x98, 0x33, 0x89, 0x5a, 0xf6, 0x70, 0x3e, 0x7d, 0x29, 0x40, 0xe3,
-	0x39, 0x9b, 0xfb, 0x4f, 0x05, 0xd0, 0x7c, 0xa8, 0x16, 0x80, 0x32, 0x35, 0x11, 0x39, 0x13, 0x08,
-	0x28, 0xcb, 0x31, 0xd0, 0x3d, 0xd0, 0xa7, 0x6e, 0xc8, 0xe3, 0x98, 0xe5, 0xb7, 0x57, 0xa3, 0x4c,
-	0x9d, 0x1a, 0x03, 0x7a, 0x00, 0x5b, 0xda, 0xad, 0x04, 0x21, 0x5d, 0x3d, 0x18, 0xc4, 0x4e, 0xc9,
-	0x6b, 0x94, 0xa9, 0x2f, 0x05, 0x21, 0xcf, 0xb4, 0x4d, 0x27, 0xe9, 0x8d, 0x58, 0xd4, 0xef, 0xf6,
-	0x75, 0x44, 0x76, 0x93, 0x35, 0x63, 0x39, 0xb3, 0x6e, 0xca, 0x27, 0x1c, 0x56, 0x2d, 0x06, 0xcf,
-	0x29, 0xb8, 0x50, 0x0d, 0x79, 0x9c, 0xb2, 0x88, 0x88, 0xfa, 0x5a, 0xd6, 0x56, 0xf9, 0x59, 0xfb,
-	0xd2, 0x08, 0x2b, 0x5d, 0x50, 0x7d, 0x3d, 0xf3, 0xe5, 0xe7, 0xf6, 0xaf, 0x2b, 0xb0, 0x6e, 0x1b,
-	0x02, 0x51, 0xd8, 0x2c, 0x75, 0x08, 0x7a, 0x63, 0xd9, 0xec, 0x74, 0x24, 0x75, 0xef, 0x2d, 0x73,
-	0x1a, 0xc9, 0x3d, 0xf7, 0xc7, 0x3f, 0xff, 0xfe, 0xc3, 0xb9, 0xed, 0x6e, 0x9b, 0x3f, 0xbf, 0xf1,
-	0x63, 0xdf, 0x2e, 0xac, 0xe3, 0xca, 0x21, 0xfa, 0x06, 0x60, 0xba, 0x0d, 0x51, 0xbd, 0x7c, 0x71,
-	0x05, 0x08, 0x77, 0xa1, 0x27, 0xcb, 0x7f, 0xd7, 0xe4, 0xdf, 0x45, 0xb3, 0xf9, 0x51, 0x1f, 0x36,
-	0x4b, 0xdb, 0xbb, 0x54, 0xc5, 0xec, 0xfe, 0x2f, 0x55, 0x31, 0xbf, 0xf4, 0x73, 0x94, 0xc3, 0x39,
-	0x94, 0x08, 0xb6, 0xca, 0x0b, 0x1d, 0x1d, 0x2c, 0x24, 0x6b, 0xff, 0x00, 0xdc, 0xfb, 0x4b, 0xbd,
-	0x19, 0xd0, 0x81, 0x01, 0xda, 0x47, 0xb7, 0x67, 0x80, 0xfc, 0x48, 0xe7, 0xbe, 0x82, 0x3b, 0xd3,
-	0x96, 0x2e, 0xb6, 0x66, 0x7d, 0x61, 0xd3, 0x2f, 0xd0, 0xae, 0x38, 0x0e, 0xf3, 0xda, 0xd9, 0xb6,
-	0xfa, 0xe8, 0x17, 0xe7, 0xf7, 0x93, 0x9f, 0x1c, 0xf4, 0x03, 0xbc, 0x65, 0x09, 0x36, 0x3a, 0x38,
-	0xc1, 0x94, 0x88, 0x46, 0xb6, 0x2d, 0x1a, 0x9f, 0x92, 0x28, 0x25, 0xa2, 0x71, 0x72, 0x71, 0xee,
-	0x7d, 0x01, 0xdb, 0x1d, 0x16, 0x0e, 0x30, 0x89, 0x1a, 0x97, 0x24, 0x21, 0xdf, 0x33, 0x8c, 0x0e,
-	0x07, 0x4a, 0xa5, 0xf2, 0xd8, 0xf7, 0x29, 0x53, 0x83, 0x51, 0xaf, 0x15, 0xf2, 0xd8, 0x97, 0x38,
-	0x96, 0xa3, 0x84, 0x36, 0xc3, 0x24, 0x54, 0x7e, 0x18, 0xe3, 0xa6, 0xfd, 0x34, 0x42, 0xf1, 0x38,
-	0x7b, 0xeb, 0x29, 0x8d, 0x31, 0x8b, 0x74, 0x6c, 0x7b, 0x6d, 0x7c, 0xd4, 0x7a, 0xdc, 0x3a, 0x3a,
-	0x74, 0x9c, 0x4a, 0x7b, 0x07, 0xa7, 0x69, 0xc4, 0x42, 0x53, 0xa6, 0xff, 0x9d, 0xe4, 0xc9, 0xf1,
-	0x9c, 0x45, 0x7c, 0x0d, 0x8f, 0x3a, 0x5c, 0x90, 0x06, 0xee, 0xf1, 0x91, 0x6a, 0xbc, 0x94, 0xf2,
-	0xff, 0xe1, 0xd7, 0x5b, 0x33, 0x5f, 0x5d, 0xef, 0xff, 0x17, 0x00, 0x00, 0xff, 0xff, 0xaf, 0x47,
-	0x11, 0xae, 0xd9, 0x09, 0x00, 0x00,
+	// 1234 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xa4, 0x57, 0xcd, 0x92, 0xdb, 0xc4,
+	0x13, 0x2f, 0x6b, 0xb3, 0x5e, 0xbb, 0xbd, 0x5f, 0x9e, 0xcd, 0x3f, 0xf1, 0x5f, 0x71, 0x12, 0x47,
+	0x24, 0x54, 0xca, 0xc4, 0x76, 0xe2, 0x14, 0x54, 0x58, 0xa8, 0x82, 0x25, 0x81, 0xb0, 0x45, 0x0c,
+	0xc1, 0x81, 0xa5, 0x02, 0x55, 0xb8, 0xc6, 0xd2, 0xac, 0x3c, 0xb1, 0xa4, 0x51, 0x8d, 0x46, 0xde,
+	0x0a, 0x07, 0x0e, 0x14, 0x07, 0xb8, 0xc2, 0x89, 0x27, 0xe0, 0x69, 0x38, 0xf1, 0x0a, 0x1c, 0x38,
+	0x72, 0xe0, 0x01, 0x28, 0x8d, 0x46, 0xb6, 0x64, 0xc9, 0x4e, 0x28, 0x4e, 0xab, 0xee, 0xe9, 0xfe,
+	0xf5, 0x6f, 0x7a, 0xfa, 0x63, 0x0d, 0x55, 0xec, 0xd3, 0xae, 0xcf, 0x99, 0x60, 0xa8, 0x6a, 0xba,
+	0x78, 0xe6, 0x9e, 0x61, 0x4e, 0xf4, 0xa6, 0xcd, 0x98, 0xed, 0x90, 0x1e, 0xf6, 0x69, 0x0f, 0x7b,
+	0x1e, 0x13, 0x58, 0x50, 0xe6, 0x05, 0xb1, 0xa1, 0x7e, 0x4b, 0xfe, 0x31, 0x3b, 0x36, 0xf1, 0x3a,
+	0xc1, 0x19, 0xb6, 0x6d, 0xc2, 0x7b, 0xcc, 0x97, 0x16, 0x79, 0x6b, 0xe3, 0x37, 0x0d, 0xf6, 0xef,
+	0x73, 0x82, 0x05, 0xb9, 0xef, 0x84, 0x81, 0x20, 0x7c, 0x10, 0xd8, 0x08, 0xc1, 0x39, 0x0f, 0xbb,
+	0xa4, 0x51, 0x6a, 0x95, 0x6e, 0x56, 0x87, 0xf2, 0x1b, 0x5d, 0x85, 0xda, 0xf4, 0x5e, 0x30, 0x9a,
+	0x11, 0x1e, 0x50, 0xe6, 0x35, 0x34, 0x79, 0x04, 0xd3, 0x7b, 0xc1, 0x49, 0xac, 0x41, 0xaf, 0x41,
+	0x7d, 0x42, 0xed, 0xc9, 0x08, 0xcf, 0x30, 0x75, 0xf0, 0x98, 0x3a, 0x54, 0x3c, 0x6f, 0x6c, 0xb4,
+	0x4a, 0x37, 0x2b, 0xc3, 0xfd, 0xe8, 0xe0, 0x28, 0xa5, 0x47, 0x37, 0x60, 0xd7, 0x23, 0xe2, 0x8c,
+	0xf1, 0xe9, 0xe8, 0x14, 0x8f, 0x39, 0x35, 0x1b, 0xe7, 0x24, 0xe0, 0x8e, 0xd2, 0x7e, 0x20, 0x95,
+	0xe8, 0x11, 0x1c, 0x98, 0xcc, 0x13, 0x9c, 0x39, 0x23, 0xdf, 0xc1, 0x1e, 0x19, 0x79, 0xcc, 0x22,
+	0x41, 0x63, 0xb3, 0xb5, 0x71, 0xb3, 0xd6, 0x6f, 0x76, 0xe7, 0x29, 0xe9, 0x9e, 0x0c, 0xbe, 0xc0,
+	0x9c, 0x0c, 0xb0, 0x39, 0xa1, 0x1e, 0x79, 0xe2, 0x13, 0x73, 0x58, 0x57, 0x8e, 0x8f, 0x23, 0xbf,
+	0x8f, 0x23, 0x37, 0xf4, 0x0e, 0x6c, 0x47, 0xd8, 0x84, 0x2b, 0x98, 0xf2, 0x4b, 0xc0, 0xd4, 0x62,
+	0x8f, 0x18, 0xe0, 0x1a, 0x6c, 0x63, 0x9f, 0x8e, 0x88, 0x67, 0xf9, 0x8c, 0x7a, 0xa2, 0xb1, 0x25,
+	0x39, 0xd7, 0xb0, 0x4f, 0xdf, 0x57, 0x2a, 0xe3, 0x04, 0x50, 0x26, 0x9d, 0x43, 0xe2, 0x3b, 0xcf,
+	0xd1, 0x2e, 0x68, 0x6c, 0x2a, 0xd3, 0x59, 0x19, 0x6a, 0x6c, 0x8a, 0x6e, 0xc3, 0x96, 0x19, 0x9f,
+	0xcb, 0x44, 0xd6, 0xfa, 0x17, 0x52, 0x24, 0x94, 0xe7, 0xb1, 0x20, 0xee, 0x30, 0x31, 0x33, 0x5e,
+	0x81, 0x9d, 0x87, 0x44, 0xac, 0x7f, 0x23, 0xe3, 0x29, 0xec, 0x2d, 0x8c, 0x8a, 0x23, 0xbf, 0xb1,
+	0x1c, 0xb9, 0x99, 0x8f, 0xfc, 0x80, 0x08, 0x4c, 0x9d, 0x6c, 0xfc, 0x57, 0x61, 0xff, 0x01, 0x71,
+	0xc8, 0x8b, 0xca, 0xc4, 0x78, 0x1b, 0x50, 0xc6, 0xae, 0x98, 0xc5, 0x05, 0x28, 0x07, 0x02, 0x8b,
+	0x30, 0x50, 0x75, 0xa4, 0x24, 0xe3, 0x00, 0xea, 0x8b, 0x0b, 0x3c, 0xa2, 0x81, 0x18, 0x04, 0xb6,
+	0xf1, 0x14, 0x0e, 0xb2, 0xca, 0x62, 0xcc, 0x3e, 0x54, 0x14, 0xd9, 0x08, 0x75, 0x63, 0x4d, 0x52,
+	0xe7, 0x76, 0xc6, 0x31, 0xd4, 0x52, 0x07, 0x11, 0x24, 0xb5, 0xd4, 0x75, 0x34, 0x6a, 0xcd, 0x2f,
+	0xa8, 0xa5, 0xfa, 0x60, 0x41, 0x7d, 0x23, 0x43, 0x9d, 0x41, 0x3d, 0x97, 0xbe, 0xff, 0x02, 0x88,
+	0xae, 0x00, 0x4c, 0xc3, 0x31, 0x31, 0x99, 0x77, 0x4a, 0x6d, 0xd5, 0x1e, 0x29, 0x8d, 0xf1, 0x16,
+	0xec, 0x7d, 0x14, 0x8e, 0x09, 0xf7, 0x88, 0x20, 0xc1, 0x23, 0x3c, 0x26, 0x4e, 0x61, 0xdf, 0x9e,
+	0x87, 0xcd, 0x19, 0x76, 0xc2, 0x24, 0x66, 0x2c, 0x18, 0xbf, 0x96, 0xa0, 0x9e, 0x2b, 0x76, 0xa4,
+	0x43, 0x25, 0x0c, 0x08, 0x4f, 0x61, 0xcc, 0xe5, 0x08, 0x7b, 0xc2, 0x02, 0x91, 0x50, 0x8f, 0xbe,
+	0x23, 0x9d, 0xcf, 0xb8, 0x90, 0xc4, 0x37, 0x87, 0xf2, 0x3b, 0xc2, 0xf0, 0x71, 0x10, 0x9c, 0x31,
+	0x6e, 0x29, 0xd2, 0x73, 0x19, 0xf5, 0xa1, 0xec, 0x44, 0x44, 0x93, 0x0e, 0xd6, 0x53, 0x0f, 0xb4,
+	0x74, 0x97, 0xa1, 0xb2, 0x34, 0xf6, 0x64, 0xe1, 0xab, 0x21, 0x13, 0x95, 0xc3, 0xdf, 0x9a, 0xac,
+	0x72, 0xa5, 0x29, 0xae, 0x85, 0xaf, 0xe1, 0x40, 0x0d, 0xaa, 0x11, 0xf5, 0x4e, 0x19, 0x77, 0xe5,
+	0xcc, 0x53, 0x15, 0xdf, 0x49, 0x45, 0x5d, 0x02, 0xea, 0x2a, 0xe1, 0x78, 0xe1, 0x34, 0x44, 0xb3,
+	0x9c, 0x4e, 0xff, 0xab, 0x04, 0x28, 0x6f, 0x1a, 0xcd, 0x48, 0x9b, 0x8a, 0xf9, 0x8c, 0x8c, 0x53,
+	0x08, 0x36, 0x4d, 0x62, 0xa0, 0xcb, 0x10, 0x49, 0x23, 0x93, 0xb9, 0x2e, 0x4d, 0x52, 0x59, 0xb5,
+	0xa9, 0xb8, 0x2f, 0x15, 0xe8, 0x3a, 0xec, 0x46, 0xc7, 0x82, 0x13, 0x32, 0x8a, 0xaa, 0x80, 0xa8,
+	0x92, 0xd8, 0xb6, 0xa9, 0xf8, 0x8c, 0x13, 0xf2, 0x24, 0xd2, 0x45, 0x20, 0xe3, 0x90, 0x3a, 0xd6,
+	0xc8, 0x8a, 0x2c, 0xe2, 0x1c, 0x57, 0xa5, 0xe6, 0x81, 0x3a, 0xb6, 0xd9, 0x9c, 0xc3, 0xa6, 0x8a,
+	0xc1, 0x12, 0x0a, 0x3a, 0x54, 0x4c, 0xe6, 0xfa, 0xd4, 0x21, 0xbc, 0x51, 0x8e, 0xdf, 0x27, 0x91,
+	0xe5, 0xdb, 0x39, 0x58, 0x44, 0x17, 0x52, 0xb3, 0x6d, 0x2e, 0x1b, 0xaf, 0xc3, 0xd5, 0x87, 0x44,
+	0x7c, 0xee, 0xdb, 0x1c, 0x5b, 0x49, 0x73, 0xa7, 0xee, 0xbe, 0x6a, 0x1e, 0x7c, 0x02, 0xd7, 0xd6,
+	0xb9, 0x15, 0x3f, 0x9f, 0x0e, 0x15, 0xc5, 0x3f, 0x6e, 0xe5, 0xea, 0x70, 0x2e, 0x1b, 0x47, 0x50,
+	0xcf, 0xa2, 0xad, 0x5a, 0x58, 0x0d, 0xd8, 0xca, 0x2e, 0xab, 0x44, 0x34, 0x6e, 0xc0, 0x41, 0x16,
+	0xa2, 0x90, 0x85, 0xf1, 0x67, 0x09, 0xf6, 0x8f, 0xac, 0x67, 0x61, 0xf0, 0x82, 0xb1, 0x8b, 0xde,
+	0x84, 0x2a, 0xb6, 0x2c, 0xb5, 0x54, 0xb4, 0x97, 0x58, 0x2a, 0x15, 0x6c, 0x59, 0xf1, 0x46, 0x39,
+	0x81, 0x6d, 0x4e, 0x5c, 0x36, 0x4b, 0x36, 0xdb, 0x86, 0xf4, 0xbe, 0x9b, 0xf2, 0x5e, 0x66, 0xa0,
+	0xe0, 0x86, 0xd2, 0x2b, 0xb3, 0xa9, 0x62, 0x20, 0x89, 0xab, 0x77, 0xe0, 0xe2, 0x0a, 0xbb, 0x79,
+	0x23, 0x97, 0x16, 0x8d, 0x6c, 0x5c, 0x07, 0x94, 0x89, 0x53, 0x98, 0x90, 0xfe, 0x8f, 0x5b, 0xb0,
+	0xa5, 0x0c, 0x90, 0x0d, 0x3b, 0x99, 0x3d, 0x87, 0x2e, 0xa5, 0x87, 0xed, 0xd2, 0x3f, 0x14, 0xfa,
+	0xe5, 0x55, 0x87, 0x32, 0x90, 0xa1, 0x7f, 0xf7, 0xfb, 0x1f, 0x3f, 0x6b, 0xe7, 0xf5, 0x3d, 0xf9,
+	0x2f, 0xcd, 0xec, 0x4e, 0x4f, 0x0d, 0xe8, 0xc3, 0x52, 0x1b, 0x7d, 0x05, 0xb0, 0x98, 0xfe, 0xa8,
+	0x91, 0xed, 0xdd, 0x54, 0x08, 0xbd, 0xf0, 0x24, 0xc6, 0xbf, 0x28, 0xf1, 0xeb, 0x68, 0x19, 0x1f,
+	0x59, 0xb0, 0x93, 0xd9, 0x56, 0x99, 0x5b, 0x2c, 0xef, 0xbb, 0xcc, 0x2d, 0xf2, 0x4b, 0x2e, 0x89,
+	0xd2, 0xce, 0x45, 0x71, 0x60, 0x37, 0xbb, 0xc0, 0x50, 0xb3, 0x90, 0xac, 0x5a, 0x78, 0xfa, 0x95,
+	0x95, 0xa7, 0x71, 0xa0, 0xa6, 0x0c, 0x74, 0x01, 0x9d, 0x5f, 0x0a, 0xd4, 0x73, 0x22, 0xec, 0x53,
+	0xf8, 0xdf, 0x62, 0xaa, 0xa5, 0xa7, 0x53, 0xa3, 0x70, 0xee, 0x15, 0xe4, 0x2e, 0x3d, 0x11, 0xf3,
+	0xb9, 0x53, 0x5d, 0x84, 0x9c, 0xa5, 0x9a, 0x89, 0x0b, 0xfa, 0xd2, 0x9a, 0xd2, 0xcd, 0x24, 0x30,
+	0x5f, 0x6f, 0x6b, 0xcb, 0xe0, 0x97, 0x12, 0x34, 0xd7, 0x0d, 0x12, 0xd4, 0xce, 0xde, 0x61, 0xdd,
+	0xa0, 0xd2, 0x6f, 0xbd, 0xa4, 0x6d, 0x4c, 0xeb, 0xaa, 0xa4, 0xf5, 0x7f, 0x74, 0x71, 0x39, 0xdd,
+	0x61, 0xec, 0x87, 0x38, 0xec, 0x66, 0x21, 0x32, 0xef, 0x9b, 0x9b, 0x56, 0x99, 0xf7, 0x2d, 0x18,
+	0x44, 0x86, 0x21, 0x03, 0x36, 0xf5, 0x55, 0x01, 0x0f, 0x4b, 0xed, 0xf7, 0x7e, 0xd0, 0x7e, 0x3a,
+	0xfa, 0x5e, 0x43, 0xdf, 0xc2, 0x35, 0xe5, 0xda, 0x1a, 0x60, 0x0f, 0xdb, 0x84, 0xb7, 0xe2, 0xbe,
+	0x6f, 0x7d, 0x48, 0x1c, 0x9f, 0xf0, 0xd6, 0xd1, 0xe3, 0x63, 0xe3, 0x53, 0xd8, 0x1b, 0x50, 0x73,
+	0x82, 0x89, 0xd3, 0x3a, 0x21, 0x1e, 0xf9, 0x86, 0x62, 0xd4, 0x9e, 0x08, 0xe1, 0x07, 0x87, 0xbd,
+	0x9e, 0x4d, 0xc5, 0x24, 0x1c, 0x77, 0x4d, 0xe6, 0xf6, 0x02, 0xec, 0x06, 0xa1, 0x67, 0x77, 0x4c,
+	0xcf, 0x14, 0x3d, 0xd3, 0xc5, 0x1d, 0xf5, 0x73, 0x03, 0xb9, 0xb3, 0xd8, 0xeb, 0x5d, 0xdb, 0xc5,
+	0xd4, 0x89, 0x6c, 0xfb, 0xe5, 0xd9, 0xed, 0xee, 0x9d, 0xee, 0xed, 0xb6, 0xa6, 0x95, 0xfa, 0xfb,
+	0xd8, 0xf7, 0x1d, 0x6a, 0xca, 0x8c, 0xf5, 0x9e, 0x05, 0xcc, 0x3b, 0xcc, 0x69, 0xf8, 0x97, 0x70,
+	0x6b, 0xc0, 0x38, 0x69, 0xe1, 0x31, 0x0b, 0x45, 0xeb, 0x85, 0x94, 0xff, 0x0d, 0xbf, 0x71, 0x59,
+	0xfe, 0x92, 0xb9, 0xfb, 0x4f, 0x00, 0x00, 0x00, 0xff, 0xff, 0x5a, 0x47, 0xdd, 0x6b, 0x2d, 0x0d,
+	0x00, 0x00,
 }

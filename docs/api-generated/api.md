@@ -4,22 +4,28 @@
 ## Table of Contents
 
 - [api.proto](#api.proto)
+    - [AdjustClusterMsg](#cmavmware.AdjustClusterMsg)
+    - [AdjustClusterMsg.VMWareRemoveMachineSpec](#cmavmware.AdjustClusterMsg.VMWareRemoveMachineSpec)
+    - [AdjustClusterReply](#cmavmware.AdjustClusterReply)
     - [ClusterDetailItem](#cmavmware.ClusterDetailItem)
     - [ClusterItem](#cmavmware.ClusterItem)
     - [CreateClusterMsg](#cmavmware.CreateClusterMsg)
-    - [CreateClusterProviderSpec](#cmavmware.CreateClusterProviderSpec)
     - [CreateClusterReply](#cmavmware.CreateClusterReply)
-    - [CreateClusterVMWareSpec](#cmavmware.CreateClusterVMWareSpec)
     - [DeleteClusterMsg](#cmavmware.DeleteClusterMsg)
     - [DeleteClusterReply](#cmavmware.DeleteClusterReply)
     - [GetClusterListMsg](#cmavmware.GetClusterListMsg)
     - [GetClusterListReply](#cmavmware.GetClusterListReply)
     - [GetClusterMsg](#cmavmware.GetClusterMsg)
     - [GetClusterReply](#cmavmware.GetClusterReply)
+    - [GetUpgradeClusterInformationMsg](#cmavmware.GetUpgradeClusterInformationMsg)
+    - [GetUpgradeClusterInformationReply](#cmavmware.GetUpgradeClusterInformationReply)
     - [GetVersionMsg](#cmavmware.GetVersionMsg)
     - [GetVersionReply](#cmavmware.GetVersionReply)
     - [GetVersionReply.VersionInformation](#cmavmware.GetVersionReply.VersionInformation)
-    - [MachineSpec](#cmavmware.MachineSpec)
+    - [KubernetesLabel](#cmavmware.KubernetesLabel)
+    - [UpgradeClusterMsg](#cmavmware.UpgradeClusterMsg)
+    - [UpgradeClusterReply](#cmavmware.UpgradeClusterReply)
+    - [VMWareMachineSpec](#cmavmware.VMWareMachineSpec)
   
   
   
@@ -27,22 +33,28 @@
   
 
 - [api.proto](#api.proto)
+    - [AdjustClusterMsg](#cmavmware.AdjustClusterMsg)
+    - [AdjustClusterMsg.VMWareRemoveMachineSpec](#cmavmware.AdjustClusterMsg.VMWareRemoveMachineSpec)
+    - [AdjustClusterReply](#cmavmware.AdjustClusterReply)
     - [ClusterDetailItem](#cmavmware.ClusterDetailItem)
     - [ClusterItem](#cmavmware.ClusterItem)
     - [CreateClusterMsg](#cmavmware.CreateClusterMsg)
-    - [CreateClusterProviderSpec](#cmavmware.CreateClusterProviderSpec)
     - [CreateClusterReply](#cmavmware.CreateClusterReply)
-    - [CreateClusterVMWareSpec](#cmavmware.CreateClusterVMWareSpec)
     - [DeleteClusterMsg](#cmavmware.DeleteClusterMsg)
     - [DeleteClusterReply](#cmavmware.DeleteClusterReply)
     - [GetClusterListMsg](#cmavmware.GetClusterListMsg)
     - [GetClusterListReply](#cmavmware.GetClusterListReply)
     - [GetClusterMsg](#cmavmware.GetClusterMsg)
     - [GetClusterReply](#cmavmware.GetClusterReply)
+    - [GetUpgradeClusterInformationMsg](#cmavmware.GetUpgradeClusterInformationMsg)
+    - [GetUpgradeClusterInformationReply](#cmavmware.GetUpgradeClusterInformationReply)
     - [GetVersionMsg](#cmavmware.GetVersionMsg)
     - [GetVersionReply](#cmavmware.GetVersionReply)
     - [GetVersionReply.VersionInformation](#cmavmware.GetVersionReply.VersionInformation)
-    - [MachineSpec](#cmavmware.MachineSpec)
+    - [KubernetesLabel](#cmavmware.KubernetesLabel)
+    - [UpgradeClusterMsg](#cmavmware.UpgradeClusterMsg)
+    - [UpgradeClusterReply](#cmavmware.UpgradeClusterReply)
+    - [VMWareMachineSpec](#cmavmware.VMWareMachineSpec)
   
   
   
@@ -60,6 +72,53 @@
 
 
 
+<a name="cmavmware.AdjustClusterMsg"></a>
+
+### AdjustClusterMsg
+
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| name | [string](#string) |  | What is the cluster that we are considering for upgrade |
+| add_nodes | [VMWareMachineSpec](#cmavmware.VMWareMachineSpec) | repeated | Machines which we want to add to the cluster |
+| remove_nodes | [AdjustClusterMsg.VMWareRemoveMachineSpec](#cmavmware.AdjustClusterMsg.VMWareRemoveMachineSpec) | repeated | Machines which we want to remove from the cluster |
+
+
+
+
+
+
+<a name="cmavmware.AdjustClusterMsg.VMWareRemoveMachineSpec"></a>
+
+### AdjustClusterMsg.VMWareRemoveMachineSpec
+
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| host | [string](#string) |  | The host for SSH access |
+
+
+
+
+
+
+<a name="cmavmware.AdjustClusterReply"></a>
+
+### AdjustClusterReply
+
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| ok | [bool](#bool) |  | Was this a successful request |
+
+
+
+
+
+
 <a name="cmavmware.ClusterDetailItem"></a>
 
 ### ClusterDetailItem
@@ -104,26 +163,12 @@
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
 | name | [string](#string) |  | Name of the cluster to be provisioned |
-| provider | [CreateClusterProviderSpec](#cmavmware.CreateClusterProviderSpec) |  | The provider specification |
-
-
-
-
-
-
-<a name="cmavmware.CreateClusterProviderSpec"></a>
-
-### CreateClusterProviderSpec
-
-
-
-| Field | Type | Label | Description |
-| ----- | ---- | ----- | ----------- |
-| name | [string](#string) |  | What is the provider - like vmware |
 | k8s_version | [string](#string) |  | The version of Kubernetes for worker nodes. Control plane versions are determined by the MachineSpec. |
-| vmware | [CreateClusterVMWareSpec](#cmavmware.CreateClusterVMWareSpec) |  | The VMWare specification |
 | high_availability | [bool](#bool) |  | Whether or not the cluster is HA |
 | network_fabric | [string](#string) |  | The fabric to be used |
+| control_plane_nodes | [VMWareMachineSpec](#cmavmware.VMWareMachineSpec) | repeated | Machines which comprise the cluster |
+| worker_nodes | [VMWareMachineSpec](#cmavmware.VMWareMachineSpec) | repeated | Machines which comprise the cluster |
+| api_endpoint | [string](#string) |  | This should be a value like ip:port that will be a virtual IP/port Passed back to external customers to be able to communicate to the cluster |
 
 
 
@@ -140,23 +185,6 @@
 | ----- | ---- | ----- | ----------- |
 | ok | [bool](#bool) |  | Whether or not the cluster was provisioned by this request |
 | cluster | [ClusterItem](#cmavmware.ClusterItem) |  | The details of the cluster request response |
-
-
-
-
-
-
-<a name="cmavmware.CreateClusterVMWareSpec"></a>
-
-### CreateClusterVMWareSpec
-
-
-
-| Field | Type | Label | Description |
-| ----- | ---- | ----- | ----------- |
-| namespace | [string](#string) |  | This namespace along with the clustername with CreateClusterProviderSpec uniquely identify a managed cluster |
-| private_key | [string](#string) |  | Private key for all nodes in the cluster; note that in the Cluster API SSH provider these can be specified independently. |
-| machines | [MachineSpec](#cmavmware.MachineSpec) | repeated | Machines which comprise the cluster |
 
 
 
@@ -251,6 +279,37 @@
 
 
 
+<a name="cmavmware.GetUpgradeClusterInformationMsg"></a>
+
+### GetUpgradeClusterInformationMsg
+
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| name | [string](#string) |  | What is the cluster that we are considering for upgrade |
+
+
+
+
+
+
+<a name="cmavmware.GetUpgradeClusterInformationReply"></a>
+
+### GetUpgradeClusterInformationReply
+
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| ok | [bool](#bool) |  | Can the cluster be upgraded |
+| versions | [string](#string) | repeated | What versions are possible right now |
+
+
+
+
+
+
 <a name="cmavmware.GetVersionMsg"></a>
 
 ### GetVersionMsg
@@ -298,10 +357,57 @@ Reply for version request
 
 
 
-<a name="cmavmware.MachineSpec"></a>
+<a name="cmavmware.KubernetesLabel"></a>
 
-### MachineSpec
-The credentials to use for creating the cluster
+### KubernetesLabel
+
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| name | [string](#string) |  | The name of a label |
+| value | [string](#string) |  | The value of a label |
+
+
+
+
+
+
+<a name="cmavmware.UpgradeClusterMsg"></a>
+
+### UpgradeClusterMsg
+
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| name | [string](#string) |  | What is the cluster that we are considering for upgrade |
+| version | [string](#string) |  | What version are we upgrading to? |
+
+
+
+
+
+
+<a name="cmavmware.UpgradeClusterReply"></a>
+
+### UpgradeClusterReply
+
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| ok | [bool](#bool) |  | Was this a successful request |
+
+
+
+
+
+
+<a name="cmavmware.VMWareMachineSpec"></a>
+
+### VMWareMachineSpec
+The specification for a specific node
 
 
 | Field | Type | Label | Description |
@@ -309,7 +415,8 @@ The credentials to use for creating the cluster
 | username | [string](#string) |  | The username for SSH access |
 | host | [string](#string) |  | The host for SSH access |
 | port | [int32](#int32) |  | The port for SSH access |
-| control_plane_version | [string](#string) |  | The k8s version for the control plane. This node is only a master if this field is defined. |
+| password | [string](#string) |  | The k8s version for the control plane. This node is only a master if this field is defined. |
+| labels | [KubernetesLabel](#cmavmware.KubernetesLabel) | repeated | The labels for the machines |
 
 
 
@@ -334,6 +441,9 @@ The credentials to use for creating the cluster
 | DeleteCluster | [DeleteClusterMsg](#cmavmware.DeleteClusterMsg) | [DeleteClusterReply](#cmavmware.DeleteClusterReply) | Will delete a cluster |
 | GetClusterList | [GetClusterListMsg](#cmavmware.GetClusterListMsg) | [GetClusterListReply](#cmavmware.GetClusterListReply) | Will retrieve a list of clusters |
 | GetVersionInformation | [GetVersionMsg](#cmavmware.GetVersionMsg) | [GetVersionReply](#cmavmware.GetVersionReply) | Will return version information about api server |
+| AdjustClusterNodes | [AdjustClusterMsg](#cmavmware.AdjustClusterMsg) | [AdjustClusterReply](#cmavmware.AdjustClusterReply) | Will adjust a provision a cluster |
+| GetUpgradeClusterInformation | [GetUpgradeClusterInformationMsg](#cmavmware.GetUpgradeClusterInformationMsg) | [GetUpgradeClusterInformationReply](#cmavmware.GetUpgradeClusterInformationReply) | Will return upgrade options for a given cluster |
+| UpgradeCluster | [UpgradeClusterMsg](#cmavmware.UpgradeClusterMsg) | [UpgradeClusterReply](#cmavmware.UpgradeClusterReply) | Will attempt to upgrade a cluster |
 
  
 
@@ -346,6 +456,53 @@ The credentials to use for creating the cluster
 
 
 
+<a name="cmavmware.AdjustClusterMsg"></a>
+
+### AdjustClusterMsg
+
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| name | [string](#string) |  | What is the cluster that we are considering for upgrade |
+| add_nodes | [VMWareMachineSpec](#cmavmware.VMWareMachineSpec) | repeated | Machines which we want to add to the cluster |
+| remove_nodes | [AdjustClusterMsg.VMWareRemoveMachineSpec](#cmavmware.AdjustClusterMsg.VMWareRemoveMachineSpec) | repeated | Machines which we want to remove from the cluster |
+
+
+
+
+
+
+<a name="cmavmware.AdjustClusterMsg.VMWareRemoveMachineSpec"></a>
+
+### AdjustClusterMsg.VMWareRemoveMachineSpec
+
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| host | [string](#string) |  | The host for SSH access |
+
+
+
+
+
+
+<a name="cmavmware.AdjustClusterReply"></a>
+
+### AdjustClusterReply
+
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| ok | [bool](#bool) |  | Was this a successful request |
+
+
+
+
+
+
 <a name="cmavmware.ClusterDetailItem"></a>
 
 ### ClusterDetailItem
@@ -390,26 +547,12 @@ The credentials to use for creating the cluster
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
 | name | [string](#string) |  | Name of the cluster to be provisioned |
-| provider | [CreateClusterProviderSpec](#cmavmware.CreateClusterProviderSpec) |  | The provider specification |
-
-
-
-
-
-
-<a name="cmavmware.CreateClusterProviderSpec"></a>
-
-### CreateClusterProviderSpec
-
-
-
-| Field | Type | Label | Description |
-| ----- | ---- | ----- | ----------- |
-| name | [string](#string) |  | What is the provider - like vmware |
 | k8s_version | [string](#string) |  | The version of Kubernetes for worker nodes. Control plane versions are determined by the MachineSpec. |
-| vmware | [CreateClusterVMWareSpec](#cmavmware.CreateClusterVMWareSpec) |  | The VMWare specification |
 | high_availability | [bool](#bool) |  | Whether or not the cluster is HA |
 | network_fabric | [string](#string) |  | The fabric to be used |
+| control_plane_nodes | [VMWareMachineSpec](#cmavmware.VMWareMachineSpec) | repeated | Machines which comprise the cluster |
+| worker_nodes | [VMWareMachineSpec](#cmavmware.VMWareMachineSpec) | repeated | Machines which comprise the cluster |
+| api_endpoint | [string](#string) |  | This should be a value like ip:port that will be a virtual IP/port Passed back to external customers to be able to communicate to the cluster |
 
 
 
@@ -426,23 +569,6 @@ The credentials to use for creating the cluster
 | ----- | ---- | ----- | ----------- |
 | ok | [bool](#bool) |  | Whether or not the cluster was provisioned by this request |
 | cluster | [ClusterItem](#cmavmware.ClusterItem) |  | The details of the cluster request response |
-
-
-
-
-
-
-<a name="cmavmware.CreateClusterVMWareSpec"></a>
-
-### CreateClusterVMWareSpec
-
-
-
-| Field | Type | Label | Description |
-| ----- | ---- | ----- | ----------- |
-| namespace | [string](#string) |  | This namespace along with the clustername with CreateClusterProviderSpec uniquely identify a managed cluster |
-| private_key | [string](#string) |  | Private key for all nodes in the cluster; note that in the Cluster API SSH provider these can be specified independently. |
-| machines | [MachineSpec](#cmavmware.MachineSpec) | repeated | Machines which comprise the cluster |
 
 
 
@@ -537,6 +663,37 @@ The credentials to use for creating the cluster
 
 
 
+<a name="cmavmware.GetUpgradeClusterInformationMsg"></a>
+
+### GetUpgradeClusterInformationMsg
+
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| name | [string](#string) |  | What is the cluster that we are considering for upgrade |
+
+
+
+
+
+
+<a name="cmavmware.GetUpgradeClusterInformationReply"></a>
+
+### GetUpgradeClusterInformationReply
+
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| ok | [bool](#bool) |  | Can the cluster be upgraded |
+| versions | [string](#string) | repeated | What versions are possible right now |
+
+
+
+
+
+
 <a name="cmavmware.GetVersionMsg"></a>
 
 ### GetVersionMsg
@@ -584,10 +741,57 @@ Reply for version request
 
 
 
-<a name="cmavmware.MachineSpec"></a>
+<a name="cmavmware.KubernetesLabel"></a>
 
-### MachineSpec
-The credentials to use for creating the cluster
+### KubernetesLabel
+
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| name | [string](#string) |  | The name of a label |
+| value | [string](#string) |  | The value of a label |
+
+
+
+
+
+
+<a name="cmavmware.UpgradeClusterMsg"></a>
+
+### UpgradeClusterMsg
+
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| name | [string](#string) |  | What is the cluster that we are considering for upgrade |
+| version | [string](#string) |  | What version are we upgrading to? |
+
+
+
+
+
+
+<a name="cmavmware.UpgradeClusterReply"></a>
+
+### UpgradeClusterReply
+
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| ok | [bool](#bool) |  | Was this a successful request |
+
+
+
+
+
+
+<a name="cmavmware.VMWareMachineSpec"></a>
+
+### VMWareMachineSpec
+The specification for a specific node
 
 
 | Field | Type | Label | Description |
@@ -595,7 +799,8 @@ The credentials to use for creating the cluster
 | username | [string](#string) |  | The username for SSH access |
 | host | [string](#string) |  | The host for SSH access |
 | port | [int32](#int32) |  | The port for SSH access |
-| control_plane_version | [string](#string) |  | The k8s version for the control plane. This node is only a master if this field is defined. |
+| password | [string](#string) |  | The k8s version for the control plane. This node is only a master if this field is defined. |
+| labels | [KubernetesLabel](#cmavmware.KubernetesLabel) | repeated | The labels for the machines |
 
 
 
@@ -620,6 +825,9 @@ The credentials to use for creating the cluster
 | DeleteCluster | [DeleteClusterMsg](#cmavmware.DeleteClusterMsg) | [DeleteClusterReply](#cmavmware.DeleteClusterReply) | Will delete a cluster |
 | GetClusterList | [GetClusterListMsg](#cmavmware.GetClusterListMsg) | [GetClusterListReply](#cmavmware.GetClusterListReply) | Will retrieve a list of clusters |
 | GetVersionInformation | [GetVersionMsg](#cmavmware.GetVersionMsg) | [GetVersionReply](#cmavmware.GetVersionReply) | Will return version information about api server |
+| AdjustClusterNodes | [AdjustClusterMsg](#cmavmware.AdjustClusterMsg) | [AdjustClusterReply](#cmavmware.AdjustClusterReply) | Will adjust a provision a cluster |
+| GetUpgradeClusterInformation | [GetUpgradeClusterInformationMsg](#cmavmware.GetUpgradeClusterInformationMsg) | [GetUpgradeClusterInformationReply](#cmavmware.GetUpgradeClusterInformationReply) | Will return upgrade options for a given cluster |
+| UpgradeCluster | [UpgradeClusterMsg](#cmavmware.UpgradeClusterMsg) | [UpgradeClusterReply](#cmavmware.UpgradeClusterReply) | Will attempt to upgrade a cluster |
 
  
 
