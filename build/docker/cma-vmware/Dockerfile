@@ -33,5 +33,6 @@ ARG KUBECTL_VERSION
 COPY --from=0 /go/src/github.com/samsung-cnct/cma-vmware/cma-vmware /cma-vmware
 
 ADD https://storage.googleapis.com/kubernetes-release/release/v${KUBECTL_VERSION}/bin/linux/amd64/kubectl /usr/bin/kubectl
+RUN chmod +x /usr/bin/kubectl
 
 ENTRYPOINT ["/cma-vmware"]
