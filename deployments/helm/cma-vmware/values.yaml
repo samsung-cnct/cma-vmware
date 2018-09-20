@@ -5,7 +5,7 @@
 
 name: cma-vmware
 image:
-  repo: quay.io/samsung_cnct/cma-vmware:master
+  repo: quay.io/samsung_cnct/cma-vmware:prod
 
 port: 80
 service:
