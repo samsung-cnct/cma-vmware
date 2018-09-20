@@ -112,6 +112,8 @@ message CreateClusterMsg {
     // This should be a value like ip:port that will be a virtual IP/port
     // Passed back to external customers to be able to communicate to the cluster
     string api_endpoint = 7;
+    // Private key used to ssh into machines
+    string private_key = 8;
 }
 
 message CreateClusterReply {

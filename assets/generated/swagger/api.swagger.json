@@ -332,6 +332,10 @@
         "api_endpoint": {
           "type": "string",
           "title": "This should be a value like ip:port that will be a virtual IP/port\nPassed back to external customers to be able to communicate to the cluster"
+        },
+        "private_key": {
+          "type": "string",
+          "title": "Private key used to ssh into machines"
         }
       }
     },

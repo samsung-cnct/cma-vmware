@@ -169,6 +169,7 @@
 | control_plane_nodes | [VMWareMachineSpec](#cmavmware.VMWareMachineSpec) | repeated | Machines which comprise the cluster |
 | worker_nodes | [VMWareMachineSpec](#cmavmware.VMWareMachineSpec) | repeated | Machines which comprise the cluster |
 | api_endpoint | [string](#string) |  | This should be a value like ip:port that will be a virtual IP/port Passed back to external customers to be able to communicate to the cluster |
+| private_key | [string](#string) |  | Private key used to ssh into machines |
 
 
 
@@ -553,6 +554,7 @@ The specification for a specific node
 | control_plane_nodes | [VMWareMachineSpec](#cmavmware.VMWareMachineSpec) | repeated | Machines which comprise the cluster |
 | worker_nodes | [VMWareMachineSpec](#cmavmware.VMWareMachineSpec) | repeated | Machines which comprise the cluster |
 | api_endpoint | [string](#string) |  | This should be a value like ip:port that will be a virtual IP/port Passed back to external customers to be able to communicate to the cluster |
+| private_key | [string](#string) |  | Private key used to ssh into machines |
 
 
 
