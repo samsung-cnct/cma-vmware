@@ -41,7 +41,6 @@ func TranslateAPI(in *pb.CreateClusterMsg) ClusterShim {
 		PrivateKey: in.PrivateKey,
 	}
 
-	cluster.Machines = make([]MachineShim, 1)
 	for _, m := range in.ControlPlaneNodes {
 		cluster.Machines = append(cluster.Machines, MachineShim{
 			Username:            m.Username,
