@@ -37,7 +37,7 @@ type MachineShim struct {
 
 func TranslateAPI(in *pb.CreateClusterMsg) ClusterShim {
 	cluster := ClusterShim{
-		Name:       in.Name,
+		Name:       in.Name + "notEmpty",
 		PrivateKey: in.PrivateKey,
 	}
 
@@ -86,7 +86,7 @@ func ApplyManifests(cluster ClusterShim) error {
 	}
 
 	cmdName := "kubectl"
-	cmdArgs := []string{"apply", "-n", cluster.Name}
+	cmdArgs := []string{"apply", "-n", cluster.Name, "-f", "-"}
 	cmdTimeout := time.Duration(maxApplyTimeout) * time.Second
 	err = RunCommand(cmdName, cmdArgs, manifests, cmdTimeout)
 	if err != nil {
