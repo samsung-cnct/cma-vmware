@@ -17,6 +17,8 @@ import (
 )
 
 const (
+	kubectlCmd = "kubectl"
+
 	maxApplyTimeout = 30
 )
 
@@ -51,6 +53,7 @@ func TranslateAPI(in *pb.CreateClusterMsg) ClusterShim {
 			ControlPlaneVersion: in.K8SVersion,
 		})
 	}
+
 	for _, m := range in.WorkerNodes {
 		cluster.Machines = append(cluster.Machines, MachineShim{
 			Username:       m.Username,
@@ -85,8 +88,8 @@ func ApplyManifests(cluster ClusterShim) error {
 		return err
 	}
 
-	cmdName := "kubectl"
-	cmdArgs := []string{"apply", "-n", cluster.Name, "-f", "-"}
+	cmdName := kubectlCmd
+	cmdArgs := []string{"apply", "-f", "-"}
 	cmdTimeout := time.Duration(maxApplyTimeout) * time.Second
 	err = RunCommand(cmdName, cmdArgs, manifests, cmdTimeout)
 	if err != nil {
@@ -101,7 +104,7 @@ func ApplyManifests(cluster ClusterShim) error {
 // secret and cluster object must be deleted after all machines; otherwise
 // they can not be deleted.
 func DeleteManifests(clusterName string) error {
-	cmdName := "kubectl"
+	cmdName := kubectlCmd
 	cmdTimeout := time.Duration(maxApplyTimeout) * time.Second
 
 	// Delete workers. Control plane nodes have a non-empty value for the label key controlPlane.
@@ -152,7 +155,10 @@ func DeleteManifests(clusterName string) error {
 // Run command with args and kill if timeout is reached. If streamIn is not empty it will
 // also be passed to the command via stdin.
 func RunCommand(name string, args []string, streamIn string, timeout time.Duration) error {
+	var streamOut bytes.Buffer
+
 	fmt.Printf("Running command \"%v %v\"\n", name, strings.Join(args, " "))
+
 	cmd := exec.Command(name, args...)
 
 	if streamIn != "" {
@@ -166,6 +172,7 @@ func RunCommand(name string, args []string, streamIn string, timeout time.Durati
 			io.WriteString(stdin, streamIn)
 		}()
 	}
+	cmd.Stdout = &streamOut
 
 	err := cmd.Start()
 	if err != nil {
@@ -179,25 +186,22 @@ func RunCommand(name string, args []string, streamIn string, timeout time.Durati
 
 	select {
 	case <-time.After(timeout):
+		fmt.Fprintf(os.Stderr, "Command %v output: %v\n", name, string(streamOut.Bytes()))
+
 		if err := cmd.Process.Kill(); err != nil {
 			panic(fmt.Sprintf("Failed to kill command %v, err %v", name, err))
 		}
-		err = fmt.Errorf("Command %v timed out\n", name)
-		break
+
+		return fmt.Errorf("Command %v timed out\n", name)
 	case err := <-done:
+		fmt.Fprintf(os.Stderr, "Command %v output: %v\n", name, string(streamOut.Bytes()))
+
 		if err != nil {
 			fmt.Fprintf(os.Stderr, "Command %v returned err %v\n", name, err)
+			return err
 		}
-		break
 	}
-	if err != nil {
-		output, e := cmd.CombinedOutput()
-		if e != nil {
-			return e
-		}
-		fmt.Fprintf(os.Stderr, "%v", output)
-		return err
-	}
+
 	fmt.Printf("Command %v completed successfully\n", name)
 
 	return nil
