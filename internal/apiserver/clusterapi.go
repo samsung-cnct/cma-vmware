@@ -17,7 +17,7 @@ import (
 )
 
 const (
-	kubectlCmd = "kubectl"
+	kubectlCmd = "/usr/local/bin/kubectl"
 
 	maxApplyTimeout = 30
 )
@@ -155,7 +155,7 @@ func DeleteManifests(clusterName string) error {
 // Run command with args and kill if timeout is reached. If streamIn is not empty it will
 // also be passed to the command via stdin.
 func RunCommand(name string, args []string, streamIn string, timeout time.Duration) error {
-	var streamOut bytes.Buffer
+	var streamOut, streamErr bytes.Buffer
 
 	fmt.Printf("Running command \"%v %v\"\n", name, strings.Join(args, " "))
 
@@ -173,6 +173,7 @@ func RunCommand(name string, args []string, streamIn string, timeout time.Durati
 		}()
 	}
 	cmd.Stdout = &streamOut
+	cmd.Stderr = &streamErr
 
 	err := cmd.Start()
 	if err != nil {
@@ -186,7 +187,8 @@ func RunCommand(name string, args []string, streamIn string, timeout time.Durati
 
 	select {
 	case <-time.After(timeout):
-		fmt.Fprintf(os.Stderr, "Command %v output: %v\n", name, string(streamOut.Bytes()))
+		fmt.Fprintf(os.Stderr, "Command %v stdout: %v\n", name, string(streamOut.Bytes()))
+		fmt.Fprintf(os.Stderr, "Command %v stderr: %v\n", name, string(streamErr.Bytes()))
 
 		if err := cmd.Process.Kill(); err != nil {
 			panic(fmt.Sprintf("Failed to kill command %v, err %v", name, err))
@@ -194,7 +196,8 @@ func RunCommand(name string, args []string, streamIn string, timeout time.Durati
 
 		return fmt.Errorf("Command %v timed out\n", name)
 	case err := <-done:
-		fmt.Fprintf(os.Stderr, "Command %v output: %v\n", name, string(streamOut.Bytes()))
+		fmt.Fprintf(os.Stderr, "Command %v stdout: %v\n", name, string(streamOut.Bytes()))
+		fmt.Fprintf(os.Stderr, "Command %v stderr: %v\n", name, string(streamErr.Bytes()))
 
 		if err != nil {
 			fmt.Fprintf(os.Stderr, "Command %v returned err %v\n", name, err)
