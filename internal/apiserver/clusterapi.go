@@ -39,7 +39,7 @@ type MachineShim struct {
 
 func TranslateAPI(in *pb.CreateClusterMsg) ClusterShim {
 	cluster := ClusterShim{
-		Name:       in.Name + "notEmpty",
+		Name:       in.Name + "notempty",
 		PrivateKey: in.PrivateKey,
 	}
 
@@ -89,7 +89,7 @@ func ApplyManifests(cluster ClusterShim) error {
 	}
 
 	cmdName := kubectlCmd
-	cmdArgs := []string{"apply", "-f", "-"}
+	cmdArgs := []string{"apply", "--validate=false", "-f", "-"}
 	cmdTimeout := time.Duration(maxApplyTimeout) * time.Second
 	err = RunCommand(cmdName, cmdArgs, manifests, cmdTimeout)
 	if err != nil {
