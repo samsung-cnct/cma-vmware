@@ -10,9 +10,6 @@ import (
 	"text/template"
 	"time"
 
-	//"github.com/samsung-cnct/cluster-api-provider-ssh/cloud/ssh/providerconfig/v1alpha1"
-	//clusterv1 "sigs.k8s.io/cluster-api/pkg/apis/cluster/v1alpha1"
-
 	pb "github.com/samsung-cnct/cma-vmware/pkg/generated/api"
 )
 
@@ -39,7 +36,7 @@ type MachineShim struct {
 
 func TranslateAPI(in *pb.CreateClusterMsg) ClusterShim {
 	cluster := ClusterShim{
-		Name:       in.Name + "notempty",
+		Name:       in.Name,
 		PrivateKey: in.PrivateKey,
 	}
 
