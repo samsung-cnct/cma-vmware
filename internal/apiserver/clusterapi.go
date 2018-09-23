@@ -20,9 +20,10 @@ const (
 )
 
 type ClusterShim struct {
-	Name       string
-	PrivateKey string
-	Machines   []MachineShim
+	Name              string
+	PrivateKey        string
+	ControlPlaneNodes []MachineShim
+	WorkerNodes       []MachineShim
 }
 
 type MachineShim struct {
@@ -41,7 +42,7 @@ func TranslateAPI(in *pb.CreateClusterMsg) ClusterShim {
 	}
 
 	for _, m := range in.ControlPlaneNodes {
-		cluster.Machines = append(cluster.Machines, MachineShim{
+		cluster.ControlPlaneNodes = append(cluster.ControlPlaneNodes, MachineShim{
 			Username:            m.Username,
 			Password:            m.Password,
 			Host:                m.Host,
@@ -52,7 +53,7 @@ func TranslateAPI(in *pb.CreateClusterMsg) ClusterShim {
 	}
 
 	for _, m := range in.WorkerNodes {
-		cluster.Machines = append(cluster.Machines, MachineShim{
+		cluster.WorkerNodes = append(cluster.WorkerNodes, MachineShim{
 			Username:       m.Username,
 			Password:       m.Password,
 			Host:           m.Host,
@@ -86,7 +87,7 @@ func ApplyManifests(cluster ClusterShim) error {
 	}
 
 	cmdName := kubectlCmd
-	cmdArgs := []string{"apply", "--validate=false", "-f", "-"}
+	cmdArgs := []string{"create", "--validate=false", "-f", "-"}
 	cmdTimeout := time.Duration(maxApplyTimeout) * time.Second
 	err = RunCommand(cmdName, cmdArgs, manifests, cmdTimeout)
 	if err != nil {
