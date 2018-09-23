@@ -32,6 +32,9 @@ metadata:
   name: {{ .Release.Name }}-cluster-api-role
 rules:
 - apiGroups: [""]
+  resources: ["namespaces"]
+  verbs: ["get", "watch", "list", "patch", "delete"]
+- apiGroups: [""]
   resources: ["secrets"]
   verbs: ["get", "watch", "list", "delete"]
 - apiGroups: ["cluster.k8s.io"]
