@@ -86,7 +86,7 @@ func ApplyManifests(cluster ClusterShim) error {
 	}
 
 	cmdName := kubectlCmd
-	cmdArgs := []string{"apply", "--validate=false", "-f", "-"}
+	cmdArgs := []string{"create", "--validate=false", "-f", "-"}
 	cmdTimeout := time.Duration(maxApplyTimeout) * time.Second
 	err = RunCommand(cmdName, cmdArgs, manifests, cmdTimeout)
 	if err != nil {

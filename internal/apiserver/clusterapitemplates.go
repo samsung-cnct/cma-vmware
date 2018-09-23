@@ -28,7 +28,7 @@ spec:
 apiVersion: "cluster.k8s.io/v1alpha1"
 kind: Machine
 metadata:
-  generateName: worker-
+  generateName: machine-
   namespace: {{ $.Name }}
   labels:
     controlPlaneVersion: {{ .ControlPlaneVersion }}
