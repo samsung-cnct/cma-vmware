@@ -111,35 +111,35 @@ func DeleteManifests(clusterName string) error {
 	cmdTimeout := time.Duration(maxApplyTimeout) * time.Second
 
 	// Delete workers. Control plane nodes have a non-empty value for the label key controlPlane.
-	cmdArgs := []string{"delete", "machines", "-n", clusterName, "-l", "controlPlane="}
+	cmdArgs := []string{"delete", "machines", "-n", clusterName, "-l", "controlPlaneVersion"}
 	err := RunCommand(cmdName, cmdArgs, "", cmdTimeout)
 	if err != nil {
 		return err
 	}
 
 	// Wait for workers to finish being deleted.
-	cmdArgs = []string{"wait", "--for=delete", "machines", "-n", clusterName, "-l", "controlPlane="}
+	cmdArgs = []string{"wait", "--for=delete", "machines", "-n", clusterName, "-l", "controlPlaneVersion"}
 	err = RunCommand(cmdName, cmdArgs, "", cmdTimeout)
 	if err != nil {
 		return err
 	}
 
 	// Delete control plane.
-	cmdArgs = []string{"delete", "machines", "-n", clusterName, "--all"}
+	cmdArgs = []string{"delete", "machines", "-n", clusterName, "-l", `!controlPlaneVersion`}
 	err = RunCommand(cmdName, cmdArgs, "", cmdTimeout)
 	if err != nil {
 		return err
 	}
 
 	// Wait for control plane to finish being deleted.
-	cmdArgs = []string{"wait", "--for=delete", "machines", "-n", clusterName}
+	cmdArgs = []string{"wait", "--for=delete", "machines", "-n", clusterName, "-l", `!controlPlaneVersion`}
 	err = RunCommand(cmdName, cmdArgs, "", cmdTimeout)
 	if err != nil {
 		return err
 	}
 
 	// Delete the namespace and anything else in it (e.g. the Cluster, Secrets, etc.)
-	cmdArgs = []string{"delete", "namespace", clusterName, "--all"}
+	cmdArgs = []string{"delete", "namespace", clusterName}
 	err = RunCommand(cmdName, cmdArgs, "", cmdTimeout)
 	if err != nil {
 		return err
