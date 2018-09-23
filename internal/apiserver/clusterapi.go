@@ -17,7 +17,7 @@ import (
 )
 
 const (
-	kubectlCmd = "/usr/local/bin/kubectl"
+	kubectlCmd = "kubectl"
 
 	maxApplyTimeout = 30
 )
