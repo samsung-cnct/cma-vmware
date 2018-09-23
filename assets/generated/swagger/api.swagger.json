@@ -69,6 +69,31 @@
           "Cluster"
         ]
       },
+      "post": {
+        "summary": "Will provision a cluster",
+        "operationId": "CreateCluster",
+        "responses": {
+          "200": {
+            "description": "",
+            "schema": {
+              "$ref": "#/definitions/cmavmwareCreateClusterReply"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/cmavmwareCreateClusterMsg"
+            }
+          }
+        ],
+        "tags": [
+          "Cluster"
+        ]
+      },
       "put": {
         "summary": "Will adjust a provision a cluster",
         "operationId": "AdjustClusterNodes",

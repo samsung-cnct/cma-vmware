@@ -46,7 +46,7 @@ service Cluster {
     // Will provision a cluster
     rpc CreateCluster (CreateClusterMsg) returns (CreateClusterReply) {
         option (google.api.http) = {
-            put : "/api/v1/cluster"
+            post : "/api/v1/cluster"
             body : "*"
         };
     }
