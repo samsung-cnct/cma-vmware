@@ -2,6 +2,7 @@ package apiserver
 
 import (
 	"bytes"
+	"errors"
 	"fmt"
 	"io"
 	"os"
@@ -102,6 +103,10 @@ func ApplyManifests(cluster ClusterShim) error {
 // secret and cluster object must be deleted after all machines; otherwise
 // they can not be deleted.
 func DeleteManifests(clusterName string) error {
+	if clusterName == "" {
+		return errors.New("clusterName can not be nil")
+	}
+
 	cmdName := kubectlCmd
 	cmdTimeout := time.Duration(maxApplyTimeout) * time.Second
 
@@ -120,7 +125,7 @@ func DeleteManifests(clusterName string) error {
 	}
 
 	// Delete control plane.
-	cmdArgs = []string{"delete", "machines", "-n", clusterName}
+	cmdArgs = []string{"delete", "machines", "-n", clusterName, "--all"}
 	err = RunCommand(cmdName, cmdArgs, "", cmdTimeout)
 	if err != nil {
 		return err
