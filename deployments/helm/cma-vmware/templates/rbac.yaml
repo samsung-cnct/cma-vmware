@@ -9,12 +9,9 @@ kind: Role
 metadata:
   name: {{ .Release.Name }}-role
 rules:
-  - apiGroups:
-      - "*"
-    resources:
-      - "*"
-    verbs:
-      - "*"
+  - apiGroups: ["*"]
+    resources: ["*"]
+    verbs: ["*"]
 ---
 apiVersion: rbac.authorization.k8s.io/v1beta1
 kind: RoleBinding
@@ -28,3 +25,28 @@ subjects:
   - kind: ServiceAccount
     name: {{ .Release.Name }}-serviceaccount
     namespace: {{ .Release.Namespace}}
+---
+kind: ClusterRole
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: {{ .Release.Name }}-cluster-api-role
+rules:
+- apiGroups: [""]
+  resources: ["secrets"]
+  verbs: ["get", "watch", "list", "delete"]
+- apiGroups: ["cluster.k8s.io"]
+  resources: ["clusters", "machines"]
+  verbs: ["get", "watch", "list", "delete"]
+---
+apiVersion: rbac.authorization.k8s.io/v1beta1
+kind: ClusterRoleBinding
+metadata:
+  name: {{ .Release.Name }}-cluster-role-binding
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: {{ .Release.Name }}-cluster-api-role
+subjects:
+  - kind: ServiceAccount
+    name: {{ .Release.Name }}-serviceaccount
+    namespace: {{ .Release.Namespace }}
