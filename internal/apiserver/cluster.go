@@ -12,7 +12,7 @@ func (s *Server) CreateCluster(ctx context.Context, in *pb.CreateClusterMsg) (*p
 	err := ApplyManifests(cluster)
 	if err != nil {
 		// TODO: Make this consistent with how the CMA does logging...
-		fmt.Printf("ERROR: CreateCluster, name %v, err %v", in.Name, err)
+		fmt.Printf("ERROR: CreateCluster, name %v, err %v\n", in.Name, err)
 		return &pb.CreateClusterReply{
 			Ok: false,
 			Cluster: &pb.ClusterItem{
