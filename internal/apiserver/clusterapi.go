@@ -108,31 +108,32 @@ func DeleteManifests(clusterName string) error {
 	}
 
 	cmdName := kubectlCmd
+	cmdArgs := []string{"--help"}
 	cmdTimeout := time.Duration(maxApplyTimeout) * time.Second
 
-	// Delete workers. Control plane nodes have a non-empty value for the label key controlPlane.
-	cmdArgs := []string{"delete", "machines", "-n", clusterName, "-l", "controlPlaneVersion"}
+	// Delete workers. Control plane nodes have a non-empty value for the label key controlPlaneVersion.
+	cmdArgs = []string{"delete", "machines", "-n", clusterName, "-l", `!controlPlaneVersion`}
 	err := RunCommand(cmdName, cmdArgs, "", cmdTimeout)
 	if err != nil {
 		return err
 	}
 
 	// Wait for workers to finish being deleted.
-	cmdArgs = []string{"wait", "--for=delete", "machines", "-n", clusterName, "-l", "controlPlaneVersion"}
+	cmdArgs = []string{"wait", "--for=delete", "machines", "-n", clusterName, "-l", `!controlPlaneVersion`}
 	err = RunCommand(cmdName, cmdArgs, "", cmdTimeout)
 	if err != nil {
 		return err
 	}
 
 	// Delete control plane.
-	cmdArgs = []string{"delete", "machines", "-n", clusterName, "-l", `!controlPlaneVersion`}
+	cmdArgs = []string{"delete", "machines", "-n", clusterName, "-l", "controlPlaneVersion"}
 	err = RunCommand(cmdName, cmdArgs, "", cmdTimeout)
 	if err != nil {
 		return err
 	}
 
 	// Wait for control plane to finish being deleted.
-	cmdArgs = []string{"wait", "--for=delete", "machines", "-n", clusterName, "-l", `!controlPlaneVersion`}
+	cmdArgs = []string{"wait", "--for=delete", "machines", "-n", clusterName, "-l", "controlPlaneVersion"}
 	err = RunCommand(cmdName, cmdArgs, "", cmdTimeout)
 	if err != nil {
 		return err
