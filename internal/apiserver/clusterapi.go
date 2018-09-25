@@ -147,13 +147,6 @@ func DeleteManifests(clusterName string) error {
 		return err
 	}
 
-	// Wait for the namespace to finish being deleted.
-	cmdArgs = []string{"wait", "--for=delete", "ns", clusterName}
-	_, err = RunCommand(cmdName, cmdArgs, "", cmdTimeout)
-	if err != nil {
-		return err
-	}
-
 	return nil
 }
 
