@@ -173,6 +173,20 @@ func GetKubeConfig(clusterName string) (string, error) {
 	return string(decodedKubeconfig), nil
 }
 
+func ListClusters() ([]string, error) {
+	cmdName := kubectlCmd
+	cmdArgs := []string{"--help"}
+	cmdTimeout := time.Duration(maxApplyTimeout) * time.Second
+
+	cmdArgs = []string{"get", "clusters", "--all-namespaces", "-o", "jsonpath={.items[*].metadata.name}"}
+	stdout, err := RunCommand(cmdName, cmdArgs, "", cmdTimeout)
+	if err != nil {
+		return nil, err
+	}
+
+	return strings.Split(string(stdout.Bytes()), " "), nil
+}
+
 // Run command with args and kill if timeout is reached. If streamIn is not empty it will
 // also be passed to the command via stdin.
 func RunCommand(name string, args []string, streamIn string, timeout time.Duration) (bytes.Buffer, error) {

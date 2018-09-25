@@ -68,10 +68,26 @@ func (s *Server) DeleteCluster(ctx context.Context, in *pb.DeleteClusterMsg) (*p
 }
 
 func (s *Server) GetClusterList(ctx context.Context, in *pb.GetClusterListMsg) (reply *pb.GetClusterListReply, err error) {
-	reply = &pb.GetClusterListReply{
-		Ok: true,
+	clusterNames, err := ListClusters()
+	if err != nil {
+		return &pb.GetClusterListReply{
+			Ok: false,
+		}, err
 	}
-	return reply, nil
+
+	var clusters []*pb.ClusterItem
+	for _, name := range clusterNames {
+		clusters = append(clusters, &pb.ClusterItem{
+			Id:     "stub",
+			Name:   name,
+			Status: "Yes",
+		})
+	}
+
+	return &pb.GetClusterListReply{
+		Ok:       true,
+		Clusters: clusters,
+	}, nil
 }
 
 func (s *Server) AdjustClusterNodes(ctx context.Context, in *pb.AdjustClusterMsg) (*pb.AdjustClusterReply, error) {
