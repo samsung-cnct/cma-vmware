@@ -192,7 +192,10 @@ message VMWareMachineSpec {
     string host = 2;
     // The port for SSH access
     int32 port = 3;
-    // The k8s version for the control plane. This node is only a master if this field is defined.
+    // The password for SSH access. This is not implemented within the clusterapi
+    // because without known_host support a MITM can get the password. A MITM is
+    // still a problem for key based authentication; even if they do not get the
+    // key they can still impersonate the machine. TODO: implement known_hosts.
     string password = 4;
     // The labels for the machines
     repeated KubernetesLabel labels = 5;

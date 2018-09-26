@@ -416,7 +416,7 @@ The specification for a specific node
 | username | [string](#string) |  | The username for SSH access |
 | host | [string](#string) |  | The host for SSH access |
 | port | [int32](#int32) |  | The port for SSH access |
-| password | [string](#string) |  | The k8s version for the control plane. This node is only a master if this field is defined. |
+| password | [string](#string) |  | The password for SSH access. This is not implemented within the clusterapi because without known_host support a MITM can get the password. A MITM is still a problem for key based authentication; even if they do not get the key they can still impersonate the machine. TODO: implement known_hosts. |
 | labels | [KubernetesLabel](#cmavmware.KubernetesLabel) | repeated | The labels for the machines |
 
 
@@ -801,7 +801,7 @@ The specification for a specific node
 | username | [string](#string) |  | The username for SSH access |
 | host | [string](#string) |  | The host for SSH access |
 | port | [int32](#int32) |  | The port for SSH access |
-| password | [string](#string) |  | The k8s version for the control plane. This node is only a master if this field is defined. |
+| password | [string](#string) |  | The password for SSH access. This is not implemented within the clusterapi because without known_host support a MITM can get the password. A MITM is still a problem for key based authentication; even if they do not get the key they can still impersonate the machine. TODO: implement known_hosts. |
 | labels | [KubernetesLabel](#cmavmware.KubernetesLabel) | repeated | The labels for the machines |
 
 

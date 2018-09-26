@@ -60,8 +60,8 @@ func (m *CreateClusterMsg) XXX_Unmarshal(b []byte) error {
 func (m *CreateClusterMsg) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	return xxx_messageInfo_CreateClusterMsg.Marshal(b, m, deterministic)
 }
-func (dst *CreateClusterMsg) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_CreateClusterMsg.Merge(dst, src)
+func (m *CreateClusterMsg) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_CreateClusterMsg.Merge(m, src)
 }
 func (m *CreateClusterMsg) XXX_Size() int {
 	return xxx_messageInfo_CreateClusterMsg.Size(m)
@@ -150,8 +150,8 @@ func (m *CreateClusterReply) XXX_Unmarshal(b []byte) error {
 func (m *CreateClusterReply) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	return xxx_messageInfo_CreateClusterReply.Marshal(b, m, deterministic)
 }
-func (dst *CreateClusterReply) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_CreateClusterReply.Merge(dst, src)
+func (m *CreateClusterReply) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_CreateClusterReply.Merge(m, src)
 }
 func (m *CreateClusterReply) XXX_Size() int {
 	return xxx_messageInfo_CreateClusterReply.Size(m)
@@ -196,8 +196,8 @@ func (m *GetClusterMsg) XXX_Unmarshal(b []byte) error {
 func (m *GetClusterMsg) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	return xxx_messageInfo_GetClusterMsg.Marshal(b, m, deterministic)
 }
-func (dst *GetClusterMsg) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_GetClusterMsg.Merge(dst, src)
+func (m *GetClusterMsg) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_GetClusterMsg.Merge(m, src)
 }
 func (m *GetClusterMsg) XXX_Size() int {
 	return xxx_messageInfo_GetClusterMsg.Size(m)
@@ -236,8 +236,8 @@ func (m *GetClusterReply) XXX_Unmarshal(b []byte) error {
 func (m *GetClusterReply) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	return xxx_messageInfo_GetClusterReply.Marshal(b, m, deterministic)
 }
-func (dst *GetClusterReply) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_GetClusterReply.Merge(dst, src)
+func (m *GetClusterReply) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_GetClusterReply.Merge(m, src)
 }
 func (m *GetClusterReply) XXX_Size() int {
 	return xxx_messageInfo_GetClusterReply.Size(m)
@@ -282,8 +282,8 @@ func (m *DeleteClusterMsg) XXX_Unmarshal(b []byte) error {
 func (m *DeleteClusterMsg) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	return xxx_messageInfo_DeleteClusterMsg.Marshal(b, m, deterministic)
 }
-func (dst *DeleteClusterMsg) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_DeleteClusterMsg.Merge(dst, src)
+func (m *DeleteClusterMsg) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_DeleteClusterMsg.Merge(m, src)
 }
 func (m *DeleteClusterMsg) XXX_Size() int {
 	return xxx_messageInfo_DeleteClusterMsg.Size(m)
@@ -323,8 +323,8 @@ func (m *DeleteClusterReply) XXX_Unmarshal(b []byte) error {
 func (m *DeleteClusterReply) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	return xxx_messageInfo_DeleteClusterReply.Marshal(b, m, deterministic)
 }
-func (dst *DeleteClusterReply) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_DeleteClusterReply.Merge(dst, src)
+func (m *DeleteClusterReply) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_DeleteClusterReply.Merge(m, src)
 }
 func (m *DeleteClusterReply) XXX_Size() int {
 	return xxx_messageInfo_DeleteClusterReply.Size(m)
@@ -367,8 +367,8 @@ func (m *GetClusterListMsg) XXX_Unmarshal(b []byte) error {
 func (m *GetClusterListMsg) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	return xxx_messageInfo_GetClusterListMsg.Marshal(b, m, deterministic)
 }
-func (dst *GetClusterListMsg) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_GetClusterListMsg.Merge(dst, src)
+func (m *GetClusterListMsg) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_GetClusterListMsg.Merge(m, src)
 }
 func (m *GetClusterListMsg) XXX_Size() int {
 	return xxx_messageInfo_GetClusterListMsg.Size(m)
@@ -401,8 +401,8 @@ func (m *GetClusterListReply) XXX_Unmarshal(b []byte) error {
 func (m *GetClusterListReply) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	return xxx_messageInfo_GetClusterListReply.Marshal(b, m, deterministic)
 }
-func (dst *GetClusterListReply) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_GetClusterListReply.Merge(dst, src)
+func (m *GetClusterListReply) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_GetClusterListReply.Merge(m, src)
 }
 func (m *GetClusterListReply) XXX_Size() int {
 	return xxx_messageInfo_GetClusterListReply.Size(m)
@@ -451,8 +451,8 @@ func (m *ClusterItem) XXX_Unmarshal(b []byte) error {
 func (m *ClusterItem) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	return xxx_messageInfo_ClusterItem.Marshal(b, m, deterministic)
 }
-func (dst *ClusterItem) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_ClusterItem.Merge(dst, src)
+func (m *ClusterItem) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_ClusterItem.Merge(m, src)
 }
 func (m *ClusterItem) XXX_Size() int {
 	return xxx_messageInfo_ClusterItem.Size(m)
@@ -510,8 +510,8 @@ func (m *ClusterDetailItem) XXX_Unmarshal(b []byte) error {
 func (m *ClusterDetailItem) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	return xxx_messageInfo_ClusterDetailItem.Marshal(b, m, deterministic)
 }
-func (dst *ClusterDetailItem) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_ClusterDetailItem.Merge(dst, src)
+func (m *ClusterDetailItem) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_ClusterDetailItem.Merge(m, src)
 }
 func (m *ClusterDetailItem) XXX_Size() int {
 	return xxx_messageInfo_ClusterDetailItem.Size(m)
@@ -572,8 +572,8 @@ func (m *KubernetesLabel) XXX_Unmarshal(b []byte) error {
 func (m *KubernetesLabel) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	return xxx_messageInfo_KubernetesLabel.Marshal(b, m, deterministic)
 }
-func (dst *KubernetesLabel) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_KubernetesLabel.Merge(dst, src)
+func (m *KubernetesLabel) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_KubernetesLabel.Merge(m, src)
 }
 func (m *KubernetesLabel) XXX_Size() int {
 	return xxx_messageInfo_KubernetesLabel.Size(m)
@@ -606,7 +606,10 @@ type VMWareMachineSpec struct {
 	Host string `protobuf:"bytes,2,opt,name=host,proto3" json:"host,omitempty"`
 	// The port for SSH access
 	Port int32 `protobuf:"varint,3,opt,name=port,proto3" json:"port,omitempty"`
-	// The k8s version for the control plane. This node is only a master if this field is defined.
+	// The password for SSH access. This is not implemented within the clusterapi
+	// because without known_host support a MITM can get the password. A MITM is
+	// still a problem for key based authentication; even if they do not get the
+	// key they can still impersonate the machine. TODO: implement known_hosts.
 	Password string `protobuf:"bytes,4,opt,name=password,proto3" json:"password,omitempty"`
 	// The labels for the machines
 	Labels               []*KubernetesLabel `protobuf:"bytes,5,rep,name=labels,proto3" json:"labels,omitempty"`
@@ -627,8 +630,8 @@ func (m *VMWareMachineSpec) XXX_Unmarshal(b []byte) error {
 func (m *VMWareMachineSpec) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	return xxx_messageInfo_VMWareMachineSpec.Marshal(b, m, deterministic)
 }
-func (dst *VMWareMachineSpec) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_VMWareMachineSpec.Merge(dst, src)
+func (m *VMWareMachineSpec) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_VMWareMachineSpec.Merge(m, src)
 }
 func (m *VMWareMachineSpec) XXX_Size() int {
 	return xxx_messageInfo_VMWareMachineSpec.Size(m)
@@ -693,8 +696,8 @@ func (m *GetVersionMsg) XXX_Unmarshal(b []byte) error {
 func (m *GetVersionMsg) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	return xxx_messageInfo_GetVersionMsg.Marshal(b, m, deterministic)
 }
-func (dst *GetVersionMsg) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_GetVersionMsg.Merge(dst, src)
+func (m *GetVersionMsg) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_GetVersionMsg.Merge(m, src)
 }
 func (m *GetVersionMsg) XXX_Size() int {
 	return xxx_messageInfo_GetVersionMsg.Size(m)
@@ -728,8 +731,8 @@ func (m *GetVersionReply) XXX_Unmarshal(b []byte) error {
 func (m *GetVersionReply) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	return xxx_messageInfo_GetVersionReply.Marshal(b, m, deterministic)
 }
-func (dst *GetVersionReply) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_GetVersionReply.Merge(dst, src)
+func (m *GetVersionReply) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_GetVersionReply.Merge(m, src)
 }
 func (m *GetVersionReply) XXX_Size() int {
 	return xxx_messageInfo_GetVersionReply.Size(m)
@@ -786,8 +789,8 @@ func (m *GetVersionReply_VersionInformation) XXX_Unmarshal(b []byte) error {
 func (m *GetVersionReply_VersionInformation) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	return xxx_messageInfo_GetVersionReply_VersionInformation.Marshal(b, m, deterministic)
 }
-func (dst *GetVersionReply_VersionInformation) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_GetVersionReply_VersionInformation.Merge(dst, src)
+func (m *GetVersionReply_VersionInformation) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_GetVersionReply_VersionInformation.Merge(m, src)
 }
 func (m *GetVersionReply_VersionInformation) XXX_Size() int {
 	return xxx_messageInfo_GetVersionReply_VersionInformation.Size(m)
@@ -867,8 +870,8 @@ func (m *GetUpgradeClusterInformationMsg) XXX_Unmarshal(b []byte) error {
 func (m *GetUpgradeClusterInformationMsg) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	return xxx_messageInfo_GetUpgradeClusterInformationMsg.Marshal(b, m, deterministic)
 }
-func (dst *GetUpgradeClusterInformationMsg) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_GetUpgradeClusterInformationMsg.Merge(dst, src)
+func (m *GetUpgradeClusterInformationMsg) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_GetUpgradeClusterInformationMsg.Merge(m, src)
 }
 func (m *GetUpgradeClusterInformationMsg) XXX_Size() int {
 	return xxx_messageInfo_GetUpgradeClusterInformationMsg.Size(m)
@@ -908,8 +911,8 @@ func (m *GetUpgradeClusterInformationReply) XXX_Unmarshal(b []byte) error {
 func (m *GetUpgradeClusterInformationReply) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	return xxx_messageInfo_GetUpgradeClusterInformationReply.Marshal(b, m, deterministic)
 }
-func (dst *GetUpgradeClusterInformationReply) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_GetUpgradeClusterInformationReply.Merge(dst, src)
+func (m *GetUpgradeClusterInformationReply) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_GetUpgradeClusterInformationReply.Merge(m, src)
 }
 func (m *GetUpgradeClusterInformationReply) XXX_Size() int {
 	return xxx_messageInfo_GetUpgradeClusterInformationReply.Size(m)
@@ -956,8 +959,8 @@ func (m *UpgradeClusterMsg) XXX_Unmarshal(b []byte) error {
 func (m *UpgradeClusterMsg) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	return xxx_messageInfo_UpgradeClusterMsg.Marshal(b, m, deterministic)
 }
-func (dst *UpgradeClusterMsg) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_UpgradeClusterMsg.Merge(dst, src)
+func (m *UpgradeClusterMsg) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_UpgradeClusterMsg.Merge(m, src)
 }
 func (m *UpgradeClusterMsg) XXX_Size() int {
 	return xxx_messageInfo_UpgradeClusterMsg.Size(m)
@@ -1002,8 +1005,8 @@ func (m *UpgradeClusterReply) XXX_Unmarshal(b []byte) error {
 func (m *UpgradeClusterReply) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	return xxx_messageInfo_UpgradeClusterReply.Marshal(b, m, deterministic)
 }
-func (dst *UpgradeClusterReply) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_UpgradeClusterReply.Merge(dst, src)
+func (m *UpgradeClusterReply) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_UpgradeClusterReply.Merge(m, src)
 }
 func (m *UpgradeClusterReply) XXX_Size() int {
 	return xxx_messageInfo_UpgradeClusterReply.Size(m)
@@ -1045,8 +1048,8 @@ func (m *AdjustClusterMsg) XXX_Unmarshal(b []byte) error {
 func (m *AdjustClusterMsg) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	return xxx_messageInfo_AdjustClusterMsg.Marshal(b, m, deterministic)
 }
-func (dst *AdjustClusterMsg) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_AdjustClusterMsg.Merge(dst, src)
+func (m *AdjustClusterMsg) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_AdjustClusterMsg.Merge(m, src)
 }
 func (m *AdjustClusterMsg) XXX_Size() int {
 	return xxx_messageInfo_AdjustClusterMsg.Size(m)
@@ -1100,8 +1103,8 @@ func (m *AdjustClusterMsg_VMWareRemoveMachineSpec) XXX_Unmarshal(b []byte) error
 func (m *AdjustClusterMsg_VMWareRemoveMachineSpec) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	return xxx_messageInfo_AdjustClusterMsg_VMWareRemoveMachineSpec.Marshal(b, m, deterministic)
 }
-func (dst *AdjustClusterMsg_VMWareRemoveMachineSpec) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_AdjustClusterMsg_VMWareRemoveMachineSpec.Merge(dst, src)
+func (m *AdjustClusterMsg_VMWareRemoveMachineSpec) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_AdjustClusterMsg_VMWareRemoveMachineSpec.Merge(m, src)
 }
 func (m *AdjustClusterMsg_VMWareRemoveMachineSpec) XXX_Size() int {
 	return xxx_messageInfo_AdjustClusterMsg_VMWareRemoveMachineSpec.Size(m)
@@ -1139,8 +1142,8 @@ func (m *AdjustClusterReply) XXX_Unmarshal(b []byte) error {
 func (m *AdjustClusterReply) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	return xxx_messageInfo_AdjustClusterReply.Marshal(b, m, deterministic)
 }
-func (dst *AdjustClusterReply) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_AdjustClusterReply.Merge(dst, src)
+func (m *AdjustClusterReply) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_AdjustClusterReply.Merge(m, src)
 }
 func (m *AdjustClusterReply) XXX_Size() int {
 	return xxx_messageInfo_AdjustClusterReply.Size(m)
