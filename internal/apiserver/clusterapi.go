@@ -187,6 +187,52 @@ func ListClusters() ([]string, error) {
 	return strings.Split(string(stdout.Bytes()), " "), nil
 }
 
+// Upgrade (or downgrade) all nodes in the cluster named clusterName to the
+// version specified by k8sVersion.
+func Upgrade(clusterName, k8sVersion string) error {
+	if clusterName == "" {
+		return errors.New("clusterName can not be nil")
+	}
+
+	cmdName := kubectlCmd
+	cmdArgs := []string{"--help"}
+	cmdTimeout := time.Duration(maxApplyTimeout) * time.Second
+
+	// Get a list of all machines.
+	cmdArgs = []string{"get", "machines", "-n", clusterName, "-o", "jsonpath={.items[*].metadata.name}"}
+	machineNames, err := RunCommand(cmdName, cmdArgs, "", cmdTimeout)
+	if err != nil {
+		return err
+	}
+
+	// Update each one sequentally.
+	for _, name := range strings.Split(string(machineNames.Bytes()), " ") {
+		cmdArgs = []string{"get", "machines", "-n", clusterName, "-o", "jsonpath={.items[*].spec.versions.controlPlane}"}
+		controlPlaneVersion, err := RunCommand(cmdName, cmdArgs, "", cmdTimeout)
+		if err != nil {
+			return err
+		}
+
+		if string(controlPlaneVersion.Bytes()) != "" {
+			// Unlike the Cluster API, the CMA API does not distinguish between the
+			// k8s version of the controlPlane and the workers.
+			cmdArgs = []string{"patch", "machine", name, "-n", clusterName, "-p", `{"spec":{"versions":{"controlPlane":"` + k8sVersion + `"}}}`}
+			_, err := RunCommand(cmdName, cmdArgs, "", cmdTimeout)
+			if err != nil {
+				return err
+			}
+
+		}
+		cmdArgs = []string{"patch", "machine", name, "-n", clusterName, "-p", `{"spec":{"versions":{"kubelet":"` + k8sVersion + `"}}}`}
+		_, err = RunCommand(cmdName, cmdArgs, "", cmdTimeout)
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
 // Run command with args and kill if timeout is reached. If streamIn is not empty it will
 // also be passed to the command via stdin.
 func RunCommand(name string, args []string, streamIn string, timeout time.Duration) (bytes.Buffer, error) {
