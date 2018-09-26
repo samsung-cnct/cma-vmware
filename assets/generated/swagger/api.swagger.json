@@ -508,7 +508,7 @@
         },
         "password": {
           "type": "string",
-          "description": "The k8s version for the control plane. This node is only a master if this field is defined."
+          "description": "The password for SSH access. This is not implemented within the clusterapi\nbecause without known_host support a MITM can get the password. A MITM is\nstill a problem for key based authentication; even if they do not get the\nkey they can still impersonate the machine. TODO: implement known_hosts."
         },
         "labels": {
           "type": "array",
