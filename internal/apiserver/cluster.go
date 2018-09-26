@@ -95,9 +95,24 @@ func (s *Server) AdjustClusterNodes(ctx context.Context, in *pb.AdjustClusterMsg
 }
 
 func (s *Server) GetUpgradeClusterInformation(ctx context.Context, in *pb.GetUpgradeClusterInformationMsg) (*pb.GetUpgradeClusterInformationReply, error) {
-	return &pb.GetUpgradeClusterInformationReply{}, fmt.Errorf("get cluster upgrade information not implemented yet")
+	return &pb.GetUpgradeClusterInformationReply{
+		Versions: []string{
+			"1.10.4",
+			"1.10.6",
+			"1.11.2",
+			"1.11.3",
+		},
+	}, nil
 }
 
 func (s *Server) UpgradeCluster(ctx context.Context, in *pb.UpgradeClusterMsg) (*pb.UpgradeClusterReply, error) {
-	return &pb.UpgradeClusterReply{}, fmt.Errorf("cluster upgrade not implemented yet")
+	err := Upgrade(in.Name, in.Version)
+	if err != nil {
+		return &pb.UpgradeClusterReply{
+			Ok: true,
+		}, err
+	}
+	return &pb.UpgradeClusterReply{
+		Ok: true,
+	}, nil
 }
