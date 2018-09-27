@@ -21,64 +21,61 @@ const (
 	maxApplyTimeout = 30
 )
 
-type ClusterShim struct {
+type SSHClusterParams struct {
 	Name              string
 	PrivateKey        string
-	ControlPlaneNodes []MachineShim
-	WorkerNodes       []MachineShim
+	K8SVersion        string
+	ControlPlaneNodes []SSHMachineParams
+	WorkerNodes       []SSHMachineParams
 }
 
-type MachineShim struct {
-	Username            string
-	Host                string
-	Port                int
-	Password            string
-	KubeletVersion      string
-	ControlPlaneVersion string
+type SSHMachineParams struct {
+	Username string
+	Host     string
+	Port     int32
+	Password string
 }
 
-func TranslateCreateClusterMsg(in *pb.CreateClusterMsg) ClusterShim {
-	cluster := ClusterShim{
+func TranslateCreateClusterMsg(in *pb.CreateClusterMsg) SSHClusterParams {
+	cluster := SSHClusterParams{
 		Name:       in.Name,
+		K8SVersion: in.K8SVersion,
 		PrivateKey: in.PrivateKey,
 	}
 
 	for _, m := range in.ControlPlaneNodes {
-		cluster.ControlPlaneNodes = append(cluster.ControlPlaneNodes, MachineShim{
-			Username:            m.Username,
-			Password:            m.Password,
-			Host:                m.Host,
-			Port:                int(m.Port),
-			KubeletVersion:      in.K8SVersion,
-			ControlPlaneVersion: in.K8SVersion,
+		cluster.ControlPlaneNodes = append(cluster.ControlPlaneNodes, SSHMachineParams{
+			Username: m.Username,
+			Password: m.Password,
+			Host:     m.Host,
+			Port:     m.Port,
 		})
 	}
 
 	for _, m := range in.WorkerNodes {
-		cluster.WorkerNodes = append(cluster.WorkerNodes, MachineShim{
-			Username:       m.Username,
-			Password:       m.Password,
-			Host:           m.Host,
-			Port:           int(m.Port),
-			KubeletVersion: in.K8SVersion,
+		cluster.WorkerNodes = append(cluster.WorkerNodes, SSHMachineParams{
+			Username: m.Username,
+			Password: m.Password,
+			Host:     m.Host,
+			Port:     m.Port,
 		})
 	}
 
 	return cluster
 }
 
-func TranslateAdjustClusterMsg(in *pb.AdjustClusterMsg, version string) ClusterShim {
-	cluster := ClusterShim{
-		Name: in.Name,
+func TranslateAdjustClusterMsg(in *pb.AdjustClusterMsg, version string) SSHClusterParams {
+	cluster := SSHClusterParams{
+		Name:       in.Name,
+		K8SVersion: version,
 	}
 
 	for _, m := range in.AddNodes {
-		cluster.WorkerNodes = append(cluster.WorkerNodes, MachineShim{
-			Username:       m.Username,
-			Password:       m.Password,
-			Host:           m.Host,
-			Port:           int(m.Port),
-			KubeletVersion: version,
+		cluster.WorkerNodes = append(cluster.WorkerNodes, SSHMachineParams{
+			Username: m.Username,
+			Password: m.Password,
+			Host:     m.Host,
+			Port:     m.Port,
 		})
 	}
 
@@ -86,7 +83,7 @@ func TranslateAdjustClusterMsg(in *pb.AdjustClusterMsg, version string) ClusterS
 }
 
 // Renders a Namespace, Cluster, and a Secret. Also renders all Machines.
-func RenderClusterManifests(cluster ClusterShim) (string, error) {
+func RenderClusterManifests(cluster SSHClusterParams) (string, error) {
 	tmpl, err := template.New("cluster-api-provider-ssh-cluster").Parse(SSHClusterTemplate)
 	if err != nil {
 		return "", err
@@ -102,7 +99,7 @@ func RenderClusterManifests(cluster ClusterShim) (string, error) {
 }
 
 // Renders all Machines (both control plane and worker).
-func RenderMachineManifests(cluster ClusterShim) (string, error) {
+func RenderMachineManifests(cluster SSHClusterParams) (string, error) {
 	tmpl, err := template.New("cluster-api-provider-ssh-machine").Parse(SSHMachineTemplate)
 	if err != nil {
 		return "", err
@@ -119,6 +116,7 @@ func RenderMachineManifests(cluster ClusterShim) (string, error) {
 
 func CreateSSHCluster(in *pb.CreateClusterMsg) error {
 	cluster := TranslateCreateClusterMsg(in)
+
 	manifests, err := RenderClusterManifests(cluster)
 	if err != nil {
 		return err
@@ -129,8 +127,8 @@ func CreateSSHCluster(in *pb.CreateClusterMsg) error {
 	cmdTimeout := time.Duration(maxApplyTimeout) * time.Second
 
 	// Create all cluster resources.
-	cmdArgs := []string{"create", "--validate=false", "-f", "-"}
-	_, err := RunCommand(cmdName, cmdArgs, manifests, cmdTimeout)
+	cmdArgs = []string{"create", "--validate=false", "-f", "-"}
+	_, err = RunCommand(cmdName, cmdArgs, manifests, cmdTimeout)
 	if err != nil {
 		return err
 	}
@@ -189,6 +187,7 @@ func DeleteSSHCluster(clusterName string) error {
 	return nil
 }
 
+// The kubeconfig for each cluster is stored as a Secret.
 func GetKubeConfig(clusterName string) (string, error) {
 	if clusterName == "" {
 		return "", errors.New("clusterName can not be nil")
@@ -240,23 +239,22 @@ func removeDuplicates(s []string) []string {
 	return result
 }
 
-func AdjustSSHCluster(msg *pb.AdjustClusterMsg) error {
+func AdjustSSHCluster(in *pb.AdjustClusterMsg) error {
 	cmdName := kubectlCmd
 	cmdArgs := []string{"--help"}
 	cmdTimeout := time.Duration(maxApplyTimeout) * time.Second
 
 	// Get kubelet version for all machines in cluster namespace.
-	cmdArgs = []string{"get", "machines", "-n", msg.Name, "-o", "jsonpath={.items[*].spec.versions.kubelet}"}
+	cmdArgs = []string{"get", "machines", "-n", in.Name, "-o", "jsonpath={.items[*].spec.versions.kubelet}"}
 	allVersions, err := RunCommand(cmdName, cmdArgs, "", cmdTimeout)
 	if err != nil {
 		return err
 	}
 
-	// Ensure there is only one version of kubelet. Since the CMA API only
-	// allows a single version to be passed during create and update, all
-	// machines should be using the same version, unless there was a failure
-	// after the control plane was upgraded but before the workers, and it
-	// was never resolved by reruning update, or deleting failed upgrades.
+	// Since the CMA API only allows a single version to be passed during
+	// create and update, all machines should be using the same version.
+	// They might not be if there was a failure after the control plane
+	// was upgraded but before the workers.
 	uniqueVersions := removeDuplicates(strings.Split(string(allVersions.Bytes()), " "))
 	if len(uniqueVersions) != 1 {
 		return fmt.Errorf("expected exactly one k8s version, found %v", len(uniqueVersions))
@@ -264,22 +262,22 @@ func AdjustSSHCluster(msg *pb.AdjustClusterMsg) error {
 	version := uniqueVersions[0]
 
 	// Generate manifests for new machines.
-	cluster := TranslateAdjustClusterMsg(msg, version)
+	cluster := TranslateAdjustClusterMsg(in, version)
 	manifests, err := RenderMachineManifests(cluster)
 	if err != nil {
 		return err
 	}
 
 	// Create added machines.
-	cmdArgs := []string{"create", "--validate=false", "-f", "-"}
-	_, err := RunCommand(cmdName, cmdArgs, manifests, cmdTimeout)
+	cmdArgs = []string{"create", "--validate=false", "-f", "-"}
+	_, err = RunCommand(cmdName, cmdArgs, manifests, cmdTimeout)
 	if err != nil {
 		return err
 	}
 
 	// Delete each removed machine.
-	for _, m := range msg.RemoveNodes {
-		cmdArgs = []string{"delete", "machine", m.Host, "-n", msg.Name}
+	for _, m := range in.RemoveNodes {
+		cmdArgs = []string{"delete", "machine", m.Host, "-n", in.Name}
 		_, err := RunCommand(cmdName, cmdArgs, "", cmdTimeout)
 		if err != nil {
 			return err

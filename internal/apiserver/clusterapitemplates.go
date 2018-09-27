@@ -46,8 +46,8 @@ spec:
         port: {{ .Port }}
         secretName: cluster-private-key
   versions:
-    kubelet: {{ .KubeletVersion }}
-    controlPlane: {{ .ControlPlaneVersion }}
+    kubelet: {{ .K8SVersion }}
+    controlPlane: {{ .K8SVersion }}
 {{ end }}
 {{ range $.WorkerNodes }}
 ---
@@ -69,7 +69,7 @@ spec:
         port: {{ .Port }}
         secretName: cluster-private-key
   versions:
-    kubelet: {{ .KubeletVersion }}
+    kubelet: {{ .K8SVersion }}
 {{ end }}
 ---
 apiVersion: v1
@@ -107,8 +107,8 @@ spec:
         port: {{ .Port }}
         secretName: cluster-private-key
   versions:
-    kubelet: {{ .KubeletVersion }}
-    controlPlane: {{ .ControlPlaneVersion }}
+    kubelet: {{ $.K8SVersion }}
+    controlPlane: {{ $.K8SVersion }}
 {{ end }}
 {{ range $.WorkerNodes }}
 ---
@@ -130,6 +130,6 @@ spec:
         port: {{ .Port }}
         secretName: cluster-private-key
   versions:
-    kubelet: {{ .KubeletVersion }}
+    kubelet: {{ $.K8SVersion }}
 {{ end }}
 `
