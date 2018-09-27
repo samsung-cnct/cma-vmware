@@ -205,17 +205,17 @@ func Upgrade(clusterName, k8sVersion string) error {
 		return err
 	}
 
-	// Update each one sequentally.
+	// Update each one.
 	for _, name := range strings.Split(string(machineNames.Bytes()), " ") {
-		cmdArgs = []string{"get", "machines", "-n", clusterName, "-o", "jsonpath={.items[*].spec.versions.controlPlane}"}
+		// Determine which machines are masters by looking for non-empty
+		// controlPlane fields.
+		cmdArgs = []string{"get", "machine", name, "-n", clusterName, "-o", "jsonpath={.items[*].spec.versions.controlPlane}"}
 		controlPlaneVersion, err := RunCommand(cmdName, cmdArgs, "", cmdTimeout)
 		if err != nil {
 			return err
 		}
 
-		if string(controlPlaneVersion.Bytes()) != "" {
-			// Unlike the Cluster API, the CMA API does not distinguish between the
-			// k8s version of the controlPlane and the workers.
+		if controlPlaneVersion.Bytes() != nil {
 			cmdArgs = []string{"patch", "machine", name, "-n", clusterName, "-p", `{"spec":{"versions":{"controlPlane":"` + k8sVersion + `"}}}`}
 			_, err := RunCommand(cmdName, cmdArgs, "", cmdTimeout)
 			if err != nil {
