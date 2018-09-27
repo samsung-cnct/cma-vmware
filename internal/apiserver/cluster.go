@@ -8,8 +8,7 @@ import (
 )
 
 func (s *Server) CreateCluster(ctx context.Context, in *pb.CreateClusterMsg) (*pb.CreateClusterReply, error) {
-	cluster := TranslateAPI(in)
-	err := ApplyManifests(cluster)
+	err := CreateSSHCluster(in)
 	if err != nil {
 		// TODO: Make this consistent with how the CMA does logging...
 		fmt.Printf("ERROR: CreateCluster, name %v, err %v\n", in.Name, err)
@@ -59,7 +58,7 @@ func (s *Server) GetCluster(ctx context.Context, in *pb.GetClusterMsg) (*pb.GetC
 }
 
 func (s *Server) DeleteCluster(ctx context.Context, in *pb.DeleteClusterMsg) (*pb.DeleteClusterReply, error) {
-	err := DeleteManifests(in.Name)
+	err := DeleteSSHCluster(in.Name)
 	if err != nil {
 		return &pb.DeleteClusterReply{Ok: false, Status: "DeleteFailed"}, nil
 	}
@@ -68,7 +67,7 @@ func (s *Server) DeleteCluster(ctx context.Context, in *pb.DeleteClusterMsg) (*p
 }
 
 func (s *Server) GetClusterList(ctx context.Context, in *pb.GetClusterListMsg) (reply *pb.GetClusterListReply, err error) {
-	clusterNames, err := ListClusters()
+	clusterNames, err := ListSSHClusters()
 	if err != nil {
 		return &pb.GetClusterListReply{
 			Ok: false,
@@ -91,10 +90,17 @@ func (s *Server) GetClusterList(ctx context.Context, in *pb.GetClusterListMsg) (
 }
 
 func (s *Server) AdjustClusterNodes(ctx context.Context, in *pb.AdjustClusterMsg) (*pb.AdjustClusterReply, error) {
-	return &pb.AdjustClusterReply{}, fmt.Errorf("adjust cluster nodes not implemented yet")
+	err := AdjustSSHCluster(in)
+	if err != nil {
+		return &pb.AdjustClusterReply{Ok: false}, nil
+	}
+
+	return &pb.AdjustClusterReply{Ok: true}, nil
 }
 
 func (s *Server) GetUpgradeClusterInformation(ctx context.Context, in *pb.GetUpgradeClusterInformationMsg) (*pb.GetUpgradeClusterInformationReply, error) {
+	// TODO: Do not hard code this list. Before adding versions, update
+	// the machine-setup ConfigMap in defined here: https://goo.gl/Wi81Z9
 	return &pb.GetUpgradeClusterInformationReply{
 		Versions: []string{
 			"1.10.4",
@@ -106,7 +112,7 @@ func (s *Server) GetUpgradeClusterInformation(ctx context.Context, in *pb.GetUpg
 }
 
 func (s *Server) UpgradeCluster(ctx context.Context, in *pb.UpgradeClusterMsg) (*pb.UpgradeClusterReply, error) {
-	err := Upgrade(in.Name, in.Version)
+	err := UpgradeSSHCluster(in.Name, in.Version)
 	if err != nil {
 		return &pb.UpgradeClusterReply{
 			Ok: true,
