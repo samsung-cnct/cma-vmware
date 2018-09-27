@@ -215,7 +215,7 @@ func Upgrade(clusterName, k8sVersion string) error {
 			return err
 		}
 
-		if string(controlPlaneVersion.Bytes()) != "" {
+		if controlPlaneVersion.Bytes() != nil {
 			cmdArgs = []string{"patch", "machine", name, "-n", clusterName, "-p", `{"spec":{"versions":{"controlPlane":"` + k8sVersion + `"}}}`}
 			_, err := RunCommand(cmdName, cmdArgs, "", cmdTimeout)
 			if err != nil {
