@@ -33,13 +33,13 @@ metadata:
 rules:
 - apiGroups: [""]
   resources: ["namespaces"]
-  verbs: ["get", "watch", "list", "patch", "delete"]
+  verbs: ["create", "get", "watch", "list", "patch", "delete"]
 - apiGroups: [""]
   resources: ["secrets"]
-  verbs: ["get", "watch", "list", "delete"]
+  verbs: ["create", "get", "watch", "list", "delete"]
 - apiGroups: ["cluster.k8s.io"]
   resources: ["clusters", "machines"]
-  verbs: ["get", "watch", "list", "delete"]
+  verbs: ["create", "get", "watch", "list", "delete"]
 ---
 apiVersion: rbac.authorization.k8s.io/v1beta1
 kind: ClusterRoleBinding
