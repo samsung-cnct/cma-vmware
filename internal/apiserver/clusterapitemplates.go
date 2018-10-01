@@ -1,6 +1,6 @@
 package apiserver
 
-const ClusterAPIProviderSSHTemplate = `
+const SSHClusterTemplate = `
 ---
 kind: Namespace
 apiVersion: v1
@@ -46,8 +46,8 @@ spec:
         port: {{ .Port }}
         secretName: cluster-private-key
   versions:
-    kubelet: {{ .KubeletVersion }}
-    controlPlane: {{ .ControlPlaneVersion }}
+    kubelet: {{ .K8SVersion }}
+    controlPlane: {{ .K8SVersion }}
 {{ end }}
 {{ range $.WorkerNodes }}
 ---
@@ -69,7 +69,7 @@ spec:
         port: {{ .Port }}
         secretName: cluster-private-key
   versions:
-    kubelet: {{ .KubeletVersion }}
+    kubelet: {{ .K8SVersion }}
 {{ end }}
 ---
 apiVersion: v1
@@ -81,4 +81,55 @@ metadata:
 data:
   private-key: {{ $.PrivateKey }}
   pass-phrase: ""
+`
+
+const SSHMachineTemplate = `
+{{ range $.ControlPlaneNodes }}
+---
+apiVersion: "cluster.k8s.io/v1alpha1"
+kind: Machine
+metadata:
+  generateName: control-plane-
+  namespace: {{ $.Name }}
+  labels:
+    controlPlaneVersion: {{ .ControlPlaneVersion }}
+spec:
+  providerConfig:
+    value:
+      apiVersion: "sshproviderconfig/v1alpha1"
+      kind: "SSHMachineProviderConfig"
+      roles:
+        - Master
+        - Etcd
+      sshConfig:
+        username: {{ .Username }}
+        host: {{ .Host }}
+        port: {{ .Port }}
+        secretName: cluster-private-key
+  versions:
+    kubelet: {{ $.K8SVersion }}
+    controlPlane: {{ $.K8SVersion }}
+{{ end }}
+{{ range $.WorkerNodes }}
+---
+apiVersion: "cluster.k8s.io/v1alpha1"
+kind: Machine
+metadata:
+  generateName: worker-
+  namespace: {{ $.Name }}
+spec:
+  providerConfig:
+    value:
+      apiVersion: "sshproviderconfig/v1alpha1"
+      kind: "SSHMachineProviderConfig"
+      roles:
+        - Node
+      sshConfig:
+        username: {{ .Username }}
+        host: {{ .Host }}
+        port: {{ .Port }}
+        secretName: cluster-private-key
+  versions:
+    kubelet: {{ $.K8SVersion }}
+{{ end }}
 `
