@@ -13,6 +13,7 @@ import (
 	"time"
 
 	pb "github.com/samsung-cnct/cma-vmware/pkg/generated/api"
+	"github.com/samsung-cnct/cma-vmware/pkg/util"
 )
 
 const (
@@ -24,6 +25,7 @@ const (
 type SSHClusterParams struct {
 	Name              string
 	PrivateKey        string
+	PublicKey         string
 	K8SVersion        string
 	ControlPlaneNodes []SSHMachineParams
 	WorkerNodes       []SSHMachineParams
@@ -98,6 +100,26 @@ func RenderClusterManifests(cluster SSHClusterParams) (string, error) {
 	return string(tmplBuf.Bytes()), nil
 }
 
+func PrepareNodes(cluster SSHClusterParams) error {
+	private, public, err := util.GenerateSSHKeyPair()
+	cluster.PrivateKey := private
+	cluster.PublicKey := public
+
+	for _, node := range cluster.ControlPlaneNodes {
+		setupPrivateKeyAccess(node, print, public)
+	}
+
+	for _, node := range cluster.WorkerNodes {
+		setupPrivateKeyAccess(node, private, public)
+	}
+}
+
+func setupPrivateKeyAccess(machine SSHMachineParams, privateKey string, publicKey string) error {
+	//TODO: add public key to remote authorized_keys
+	//TODO: add public key to local known_hosgs
+	//TODO: test remote access via private key
+}
+
 // Renders all Machines (both control plane and worker).
 func RenderMachineManifests(cluster SSHClusterParams) (string, error) {
 	tmpl, err := template.New("cluster-api-provider-ssh-machine").Parse(SSHMachineTemplate)
@@ -116,6 +138,11 @@ func RenderMachineManifests(cluster SSHClusterParams) (string, error) {
 
 func CreateSSHCluster(in *pb.CreateClusterMsg) error {
 	cluster := TranslateCreateClusterMsg(in)
+	err := PrepareNodes(cluster)
+	if err != nil {
+		return err
+	}
+	err := ApplyManifests(cluster)
 
 	manifests, err := RenderClusterManifests(cluster)
 	if err != nil {
