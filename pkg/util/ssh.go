@@ -1,9 +1,8 @@
 package util
 
 import (
+	"bytes"
 	"fmt"
-	// "net"
-	// "os"
 
 	"crypto/ecdsa"
 	"crypto/elliptic"
@@ -44,7 +43,7 @@ func GenerateSSHKeyPair() (private string, public string, err error) {
 		Bytes: privateDERBytes,
 	})
 
-	// generate public key fingerprint (problem)
+	// generate public key fingerprint
 	sshPubKey, err := ssh.NewPublicKey(publicKey)
 	if err != nil {
 		fmt.Println("Error creating ssh public key")
@@ -53,4 +52,37 @@ func GenerateSSHKeyPair() (private string, public string, err error) {
 	pubKeyBytes := ssh.MarshalAuthorizedKey(sshPubKey)
 
 	return string(privatePEMBytes), string(pubKeyBytes), nil
+}
+
+func AddPublicKeyToRemoteNode(host string, port string, username string, password string, publicKey string) error {
+	var hostKey ssh.PublicKey
+	config := &ssh.ClientConfig{
+		User: username,
+		Auth: []ssh.AuthMethod{
+			ssh.Password(password),
+		},
+		HostKeyCallback: ssh.FixedHostKey(hostKey),
+	}
+	client, err := ssh.j("tcp", fmt.Sprintf("%s:%s", host, port), config)
+	if err != nil {
+		fmt.Printf("ERROR: Failed to ssh into remote node (%s): %s\n", host, err)
+		return err
+	}
+
+	session, err := client.NewSession()
+	if err != nil {
+		fmt.Printf("ERROR: Failed to creae ssh session: %s\n", err)
+		return err
+	}
+	defer session.Close()
+
+	var b bytes.Buffer
+	session.Stdout = &b
+	remoteCmd := fmt.Sprintf("cat %s >> ~/authorized_keys", publicKey)
+	if err := session.Run(remoteCmd); err != nil {
+		fmt.Printf("ERROR: Failed to run command (%s) on remote node (%s): %s", remoteCmd, host, err)
+		feturn err
+	}
+	fmt.Println(b.String())
+	return nil
 }
