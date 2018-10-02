@@ -3,7 +3,6 @@ package util
 import (
 	"bytes"
 	"fmt"
-	"os"
 	"path/filepath"
 	"strings"
 
@@ -57,18 +56,28 @@ func GenerateSSHKeyPair() (private string, public string, err error) {
 	return string(privatePEMBytes), string(pubKeyBytes), nil
 }
 
-var remoteAuthorizedKeysFile = filepath.Join("${HOME}", ".ssh", "authorized_keys")
-var knownHostsFile = filepath.Join(os.Getenv("HOME"), ".ssh", "known_hosts")
-
 // AddPublicKeyToRemoteNode will add the publicKey to the username@host:port's authorized_keys file w/password
 func AddPublicKeyToRemoteNode(host string, port string, username string, password string, publicKey string) error {
-	config := &ssh.ClientConfig{
-		User: username,
-		Auth: []ssh.AuthMethod{
-			ssh.Password(password),
-		},
-		HostKeyCallback: ssh.InsecureIgnoreHostKey(),
+	var remoteAuthorizedKeysFile = filepath.Join("${HOME}", ".ssh", "authorized_keys")
+
+	remoteCmd := fmt.Sprintf("echo %s >> %s && chmod 600 %s",
+		strings.TrimSuffix(publicKey, "\n"),
+		remoteAuthorizedKeysFile,
+		remoteAuthorizedKeysFile)
+
+	err := ExecuteCommandOnRemoteNode(host, port, username, ssh.Password(password), remoteCmd)
+	if err != nil {
+		fmt.Printf("ERROR: Failed to add public key to remote node (%s) via password: %s\n", host, err)
+		return err
 	}
+
+	return nil
+}
+
+// ExecuteCommandOnRemoteNode executes the commmand on username@host:port using the authMethed
+func ExecuteCommandOnRemoteNode(host string, port string, username string, authMethod ssh.AuthMethod, command string) error {
+	config := sshClientConfig(username, authMethod)
+
 	client, err := ssh.Dial("tcp", fmt.Sprintf("%s:%s", host, port), config)
 	if err != nil {
 		fmt.Printf("ERROR: Failed to ssh into remote node (%s): %s\n", host, err)
@@ -82,17 +91,33 @@ func AddPublicKeyToRemoteNode(host string, port string, username string, passwor
 	}
 	defer session.Close()
 
-	remoteCmd := fmt.Sprintf("echo %s >> %s && chmod 600 %s",
-		strings.TrimSuffix(publicKey, "\n"),
-		remoteAuthorizedKeysFile,
-		remoteAuthorizedKeysFile)
-
 	var b bytes.Buffer
 	session.Stdout = &b
-	if err := session.Run(remoteCmd); err != nil {
-		fmt.Printf("ERROR: Failed to run command (%s) on remote node (%s): %s", remoteCmd, host, err)
+	if err := session.Run(command); err != nil {
+		fmt.Printf("ERROR: Failed to run command on remote node (%s): %s", host, err)
 		return err
 	}
 	fmt.Println(b.String())
+
 	return nil
+}
+
+// SSHAuthMethPublicKey generates a ssh public key authentication method based on privateKey
+func SSHAuthMethPublicKey(privateKey string) (ssh.AuthMethod, error) {
+	buffer := []byte(privateKey)
+
+	key, err := ssh.ParsePrivateKey(buffer)
+	if err != nil {
+		fmt.Printf("ERROR: could not parse private key")
+		return nil, err
+	}
+	return ssh.PublicKeys(key), nil
+}
+
+func sshClientConfig(username string, authMethod ssh.AuthMethod) *ssh.ClientConfig {
+	return &ssh.ClientConfig{
+		User:            username,
+		Auth:            []ssh.AuthMethod{authMethod},
+		HostKeyCallback: ssh.InsecureIgnoreHostKey(), //TODO: implement known_hosts
+	}
 }

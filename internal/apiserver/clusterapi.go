@@ -102,22 +102,61 @@ func RenderClusterManifests(cluster SSHClusterParams) (string, error) {
 
 func PrepareNodes(cluster SSHClusterParams) error {
 	private, public, err := util.GenerateSSHKeyPair()
-	cluster.PrivateKey := private
-	cluster.PublicKey := public
+	if err != nil {
+		return err
+	}
+
+	cluster.PrivateKey = private
+	cluster.PublicKey = public
 
 	for _, node := range cluster.ControlPlaneNodes {
-		setupPrivateKeyAccess(node, private, public)
+		err := setupPrivateKeyAccess(node, private, public)
+		if err != nil {
+			return err
+		}
 	}
 
 	for _, node := range cluster.WorkerNodes {
-		setupPrivateKeyAccess(node, private, public)
+		err := setupPrivateKeyAccess(node, private, public)
+		if err != nil {
+			return err
+		}
 	}
+
+	return nil
 }
 
 func setupPrivateKeyAccess(machine SSHMachineParams, privateKey string, publicKey string) error {
-	//TODO: add public key to remote authorized_keys
-	//TODO: add public key to local known_hosgs
-	//TODO: test remote access via private key
+	//TODO: add public key to local known_hosts (?)
+
+	err := util.AddPublicKeyToRemoteNode(
+		machine.Host,
+		string(machine.Port),
+		machine.Username,
+		machine.Password,
+		publicKey)
+	if err != nil {
+		fmt.Printf("Failed to add public key to %s@%s:%s\n",
+			machine.Username, machine.Host, machine.Port)
+		return err
+	}
+
+	// Test private key
+	testCmd := "echo cma-vmware: $(date) >> ~/.ssh/test-pvka"
+
+	authMethod, err := util.SSHAuthMethPublicKey(privateKey)
+	if err != nil {
+		fmt.Printf("Failed generate a public key for ssh authentication")
+		return err
+	}
+
+	err = util.ExecuteCommandOnRemoteNode(machine.Host, string(machine.Port), machine.Username, authMethod, testCmd)
+	if err != nil {
+		fmt.Printf("Failed to execute test command via private key on remote node")
+		return err
+	}
+
+	return nil
 }
 
 // Renders all Machines (both control plane and worker).
@@ -142,7 +181,6 @@ func CreateSSHCluster(in *pb.CreateClusterMsg) error {
 	if err != nil {
 		return err
 	}
-	err := ApplyManifests(cluster)
 
 	manifests, err := RenderClusterManifests(cluster)
 	if err != nil {
