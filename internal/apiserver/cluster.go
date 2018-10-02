@@ -101,7 +101,7 @@ func (s *Server) AdjustClusterNodes(ctx context.Context, in *pb.AdjustClusterMsg
 
 func (s *Server) GetUpgradeClusterInformation(ctx context.Context, in *pb.GetUpgradeClusterInformationMsg) (*pb.GetUpgradeClusterInformationReply, error) {
 	// TODO: Do not hard code this list. Before adding versions, update
-	// the machine-setup ConfigMap in defined here: https://goo.gl/Wi81Z9
+	// the machine-setup ConfigMap defined here: https://goo.gl/Wi81Z9
 	return &pb.GetUpgradeClusterInformationReply{
 		Versions: []string{
 			"1.10.4",
