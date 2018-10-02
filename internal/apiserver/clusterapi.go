@@ -106,7 +106,7 @@ func PrepareNodes(cluster SSHClusterParams) error {
 	cluster.PublicKey := public
 
 	for _, node := range cluster.ControlPlaneNodes {
-		setupPrivateKeyAccess(node, print, public)
+		setupPrivateKeyAccess(node, private, public)
 	}
 
 	for _, node := range cluster.WorkerNodes {

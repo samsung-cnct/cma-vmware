@@ -3,6 +3,9 @@ package util
 import (
 	"bytes"
 	"fmt"
+	"os"
+	"path/filepath"
+	"strings"
 
 	"crypto/ecdsa"
 	"crypto/elliptic"
@@ -54,16 +57,19 @@ func GenerateSSHKeyPair() (private string, public string, err error) {
 	return string(privatePEMBytes), string(pubKeyBytes), nil
 }
 
+var remoteAuthorizedKeysFile = filepath.Join("${HOME}", ".ssh", "authorized_keys")
+var knownHostsFile = filepath.Join(os.Getenv("HOME"), ".ssh", "known_hosts")
+
+// AddPublicKeyToRemoteNode will add the publicKey to the username@host:port's authorized_keys file w/password
 func AddPublicKeyToRemoteNode(host string, port string, username string, password string, publicKey string) error {
-	var hostKey ssh.PublicKey
 	config := &ssh.ClientConfig{
 		User: username,
 		Auth: []ssh.AuthMethod{
 			ssh.Password(password),
 		},
-		HostKeyCallback: ssh.FixedHostKey(hostKey),
+		HostKeyCallback: ssh.InsecureIgnoreHostKey(),
 	}
-	client, err := ssh.j("tcp", fmt.Sprintf("%s:%s", host, port), config)
+	client, err := ssh.Dial("tcp", fmt.Sprintf("%s:%s", host, port), config)
 	if err != nil {
 		fmt.Printf("ERROR: Failed to ssh into remote node (%s): %s\n", host, err)
 		return err
@@ -76,12 +82,16 @@ func AddPublicKeyToRemoteNode(host string, port string, username string, passwor
 	}
 	defer session.Close()
 
+	remoteCmd := fmt.Sprintf("echo %s >> %s && chmod 600 %s",
+		strings.TrimSuffix(publicKey, "\n"),
+		remoteAuthorizedKeysFile,
+		remoteAuthorizedKeysFile)
+
 	var b bytes.Buffer
 	session.Stdout = &b
-	remoteCmd := fmt.Sprintf("cat %s >> ~/authorized_keys", publicKey)
 	if err := session.Run(remoteCmd); err != nil {
 		fmt.Printf("ERROR: Failed to run command (%s) on remote node (%s): %s", remoteCmd, host, err)
-		feturn err
+		return err
 	}
 	fmt.Println(b.String())
 	return nil
