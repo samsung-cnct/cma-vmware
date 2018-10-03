@@ -27,7 +27,6 @@ func TestGenerateSSHKeyPair(t *testing.T) {
 		t.Errorf("Invalid private key generated")
 		return
 	}
-	//t.Logf("private key validated:\n%s\n", private)
 
 	// validate public key
 	sshPubKey, err := ssh.NewPublicKey(ecdsaPublicKey)
@@ -40,7 +39,6 @@ func TestGenerateSSHKeyPair(t *testing.T) {
 		t.Errorf("Invalid public key generated")
 		return
 	}
-	//t.Logf("public key validated:\n%s\n", public)
 }
 
 // This test requires:
@@ -69,7 +67,6 @@ func TestAddPublicKeyToRemoteNode(t *testing.T) {
 			t.Fatal(err)
 		}
 		parsedKey := string(ssh.MarshalAuthorizedKey(sshPublicKey))
-		//t.Logf("parsed key: %s\n", parsedKey)
 
 		if public == parsedKey {
 			foundKey = true
