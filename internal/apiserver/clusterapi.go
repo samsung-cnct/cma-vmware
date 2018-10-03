@@ -356,6 +356,40 @@ func AdjustSSHCluster(in *pb.AdjustClusterMsg) error {
 	return nil
 }
 
+func patchMachineVersions(clusterName, machineName, controlPlaneVersion, kubeletVersion string) error {
+	cmdName := kubectlCmd
+	cmdArgs := []string{"--help"}
+	cmdTimeout := time.Duration(maxApplyTimeout) * time.Second
+
+	if controlPlaneVersion != "" {
+		cmdArgs = []string{"patch", "machine", machineName, "-n", clusterName, "-p", `{"spec":{"versions":{"controlPlane":"` + controlPlaneVersion + `"}}}`}
+		_, err := RunCommand(cmdName, cmdArgs, "", cmdTimeout)
+		if err != nil {
+			cmdArgs = []string{"get", "machine", machineName, "-n", clusterName, "-o", "jsonpath={.items[*].spec.versions.controlPlane}"}
+			observeredVersionBuffer, _ := RunCommand(cmdName, cmdArgs, "", cmdTimeout)
+			observeredVersion := string(observeredVersionBuffer.Bytes())
+			if observeredVersion != controlPlaneVersion {
+				return fmt.Errorf("failed to set controlPlane version (from %s to %s) for machine %s in cluster %s)",
+					observeredVersion, controlPlaneVersion, machineName, clusterName)
+			}
+		}
+	}
+
+	cmdArgs = []string{"patch", "machine", machineName, "-n", clusterName, "-p", `{"spec":{"versions":{"kubelet":"` + kubeletVersion + `"}}}`}
+	_, err := RunCommand(cmdName, cmdArgs, "", cmdTimeout)
+	if err != nil {
+		cmdArgs = []string{"get", "machine", machineName, "-n", clusterName, "-o", "jsonpath={.items[*].spec.versions.kubelet}"}
+		observeredVersionBuffer, _ := RunCommand(cmdName, cmdArgs, "", cmdTimeout)
+		observeredVersion := string(observeredVersionBuffer.Bytes())
+		if observeredVersion != kubeletVersion {
+			return fmt.Errorf("failed to set kubelet version (from %s to %s) for machine %s in cluster %s)",
+				observeredVersion, kubeletVersion, machineName, clusterName)
+		}
+	}
+
+	return nil
+}
+
 // Waits for the node associated with the machine namespace/name to report
 // the expected kubelet version.
 func waitForKubeletVersion(machineName, expectedVersion string) error {
@@ -410,60 +444,47 @@ func UpgradeSSHCluster(clusterName, k8sVersion string) error {
 
 	// Update control plane..
 	var controlPlaneMachines, workerMachines []string
-	for _, name := range strings.Split(string(machineNames.Bytes()), " ") {
+	for _, machineName := range strings.Split(string(machineNames.Bytes()), " ") {
 		// Determine which machines are masters by looking for non-empty
 		// controlPlane fields.
-		cmdArgs = []string{"get", "machine", name, "-n", clusterName, "-o", "jsonpath={.items[*].spec.versions.controlPlane}"}
-		controlPlaneVersion, err := RunCommand(cmdName, cmdArgs, "", cmdTimeout)
+		cmdArgs = []string{"get", "machine", machineName, "-n", clusterName, "-o", "jsonpath={.items[*].spec.versions.controlPlane}"}
+		controlPlaneVersionBuffer, err := RunCommand(cmdName, cmdArgs, "", cmdTimeout)
 		if err != nil {
 			return err
 		}
 
-		if string(controlPlaneVersion.Bytes()) != "" {
-			controlPlaneMachines = append(controlPlaneMachines, name)
+		controlPlaneVersion := string(controlPlaneVersionBuffer.Bytes())
+		if controlPlaneVersion != "" {
+			controlPlaneMachines = append(controlPlaneMachines, machineName)
 
-			// `kubectl patch` returns non-zero for k8s releases prior to
-			// (at least) July 27th: https://goo.gl/QUtqr1 As a result we
-			// ignore errors here.
-			cmdArgs = []string{"patch", "machine", name, "-n", clusterName, "-p", `{"spec":{"versions":{"controlPlane":"` + k8sVersion + `"}}}`}
-			_, err := RunCommand(cmdName, cmdArgs, "", cmdTimeout)
+			err = patchMachineVersions(clusterName, machineName, k8sVersion, k8sVersion)
 			if err != nil {
-				fmt.Printf("Warning: `kubectl patch machine %s -n %s` returned a non-zero status. If update completes this is probably okay (cf. https://goo.gl/QUtqr1).", clusterName, name)
-			}
-
-			cmdArgs = []string{"patch", "machine", name, "-n", clusterName, "-p", `{"spec":{"versions":{"kubelet":"` + k8sVersion + `"}}}`}
-			_, err = RunCommand(cmdName, cmdArgs, "", cmdTimeout)
-			if err != nil {
-				fmt.Printf("Warning: `kubectl patch machine %s -n %s` returned a non-zero status. If update completes this is probably okay (cf. https://goo.gl/QUtqr1).", clusterName, name)
+				return err
 			}
 
 			// Wait for node to be updated before proceeding to the
 			// next one. This ensures the control plane is available
 			// while the workers are upgraded.
-			err = waitForKubeletVersion(name, k8sVersion)
+			err = waitForKubeletVersion(machineName, k8sVersion)
 			if err != nil {
-				//return err
+				return err
 			}
 		} else {
 			// Remeber worker nodes for later.
-			workerMachines = append(workerMachines, name)
+			workerMachines = append(workerMachines, machineName)
 		}
 	}
 
 	// Update workers.
-	for _, name := range workerMachines {
-		// `kubectl patch` returns non-zero for k8s releases prior to
-		// (at least) July 27th: https://goo.gl/QUtqr1 As a result we
-		// ignore errors here.
-		cmdArgs = []string{"patch", "machine", name, "-n", clusterName, "-p", `{"spec":{"versions":{"kubelet":"` + k8sVersion + `"}}}`}
-		_, err = RunCommand(cmdName, cmdArgs, "", cmdTimeout)
+	for _, machineName := range workerMachines {
+		err = patchMachineVersions(clusterName, machineName, "", k8sVersion)
 		if err != nil {
-			fmt.Printf("Warning: `kubectl patch machine %s -n %s` returned a non-zero status. If update completes this is probably okay (cf. https://goo.gl/QUtqr1).", clusterName, name)
+			return err
 		}
 
 		// Wait for node to be updated before proceeding to the next
 		// one.
-		err = waitForKubeletVersion(name, k8sVersion)
+		err = waitForKubeletVersion(machineName, k8sVersion)
 		if err != nil {
 			return err
 		}

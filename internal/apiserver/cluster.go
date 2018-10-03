@@ -39,6 +39,8 @@ func (s *Server) GetCluster(ctx context.Context, in *pb.GetClusterMsg) (*pb.GetC
 		return &pb.GetClusterReply{
 			Ok: true,
 			Cluster: &pb.ClusterDetailItem{
+				// TODO: Standardize on the nil UUID for bare metal?
+				// 00000000-0000-0000-0000-000000 000000?
 				Id:         "stub",
 				Name:       in.Name,
 				Status:     "GetFailed",
@@ -46,6 +48,8 @@ func (s *Server) GetCluster(ctx context.Context, in *pb.GetClusterMsg) (*pb.GetC
 			},
 		}, nil
 	}
+
+	// TODO: Set status based on global observations of all nodes.
 
 	return &pb.GetClusterReply{
 		Ok: true,
