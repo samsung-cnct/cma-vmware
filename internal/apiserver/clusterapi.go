@@ -13,6 +13,7 @@ import (
 	"time"
 
 	pb "github.com/samsung-cnct/cma-vmware/pkg/generated/api"
+	"github.com/samsung-cnct/cma-vmware/pkg/util"
 )
 
 const (
@@ -24,6 +25,7 @@ const (
 type SSHClusterParams struct {
 	Name              string
 	PrivateKey        string
+	PublicKey         string
 	K8SVersion        string
 	ControlPlaneNodes []SSHMachineParams
 	WorkerNodes       []SSHMachineParams
@@ -98,6 +100,65 @@ func RenderClusterManifests(cluster SSHClusterParams) (string, error) {
 	return string(tmplBuf.Bytes()), nil
 }
 
+func PrepareNodes(cluster SSHClusterParams) error {
+	private, public, err := util.GenerateSSHKeyPair()
+	if err != nil {
+		return err
+	}
+
+	cluster.PrivateKey = private
+	cluster.PublicKey = public
+
+	for _, node := range cluster.ControlPlaneNodes {
+		err := setupPrivateKeyAccess(node, private, public)
+		if err != nil {
+			return err
+		}
+	}
+
+	for _, node := range cluster.WorkerNodes {
+		err := setupPrivateKeyAccess(node, private, public)
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func setupPrivateKeyAccess(machine SSHMachineParams, privateKey string, publicKey string) error {
+	//TODO: add public key to local known_hosts (?)
+
+	err := util.AddPublicKeyToRemoteNode(
+		machine.Host,
+		string(machine.Port),
+		machine.Username,
+		machine.Password,
+		publicKey)
+	if err != nil {
+		fmt.Printf("Failed to add public key to %s@%s:%s\n",
+			machine.Username, machine.Host, machine.Port)
+		return err
+	}
+
+	// Test private key
+	testCmd := "echo cma-vmware: $(date) >> ~/.ssh/test-pvka"
+
+	authMethod, err := util.SSHAuthMethPublicKey(privateKey)
+	if err != nil {
+		fmt.Printf("Failed generate a public key for ssh authentication")
+		return err
+	}
+
+	err = util.ExecuteCommandOnRemoteNode(machine.Host, string(machine.Port), machine.Username, authMethod, testCmd)
+	if err != nil {
+		fmt.Printf("Failed to execute test command via private key on remote node")
+		return err
+	}
+
+	return nil
+}
+
 // Renders all Machines (both control plane and worker).
 func RenderMachineManifests(cluster SSHClusterParams) (string, error) {
 	tmpl, err := template.New("cluster-api-provider-ssh-machine").Parse(SSHMachineTemplate)
@@ -116,6 +177,10 @@ func RenderMachineManifests(cluster SSHClusterParams) (string, error) {
 
 func CreateSSHCluster(in *pb.CreateClusterMsg) error {
 	cluster := TranslateCreateClusterMsg(in)
+	err := PrepareNodes(cluster)
+	if err != nil {
+		return err
+	}
 
 	manifests, err := RenderClusterManifests(cluster)
 	if err != nil {
