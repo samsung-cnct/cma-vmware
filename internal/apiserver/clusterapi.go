@@ -100,7 +100,7 @@ func RenderClusterManifests(cluster SSHClusterParams) (string, error) {
 	return string(tmplBuf.Bytes()), nil
 }
 
-func PrepareNodes(cluster SSHClusterParams) error {
+func PrepareNodes(cluster *SSHClusterParams) error {
 	private, public, err := util.GenerateSSHKeyPair()
 	if err != nil {
 		return err
@@ -177,7 +177,7 @@ func RenderMachineManifests(cluster SSHClusterParams) (string, error) {
 
 func CreateSSHCluster(in *pb.CreateClusterMsg) error {
 	cluster := TranslateCreateClusterMsg(in)
-	err := PrepareNodes(cluster)
+	err := PrepareNodes(&cluster)
 	if err != nil {
 		return err
 	}
