@@ -91,6 +91,9 @@ func RenderClusterManifests(cluster SSHClusterParams) (string, error) {
 		return "", err
 	}
 
+	encodedPrivateKey := base64.StdEncoding.EncodeToString([]byte(cluster.PrivateKey))
+	cluster.PrivateKey = encodedPrivateKey
+
 	var tmplBuf bytes.Buffer
 	err = tmpl.Execute(&tmplBuf, cluster)
 	if err != nil {
