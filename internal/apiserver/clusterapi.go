@@ -24,7 +24,7 @@ const (
 
 type SSHClusterParams struct {
 	Name              string
-	PrivateKey        string
+	PrivateKey        string // This is a base64 encoded, PEM EC private key
 	PublicKey         string
 	K8SVersion        string
 	ControlPlaneNodes []SSHMachineParams
@@ -106,7 +106,7 @@ func PrepareNodes(cluster *SSHClusterParams) error {
 		return err
 	}
 
-	cluster.PrivateKey = private
+	cluster.PrivateKey = base64.StdEncoding.EncodeToString([]byte(cluster.PrivateKey))
 	cluster.PublicKey = public
 
 	for _, node := range cluster.ControlPlaneNodes {
