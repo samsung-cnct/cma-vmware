@@ -31,7 +31,7 @@ metadata:
   generateName: control-plane-
   namespace: {{ $.Name }}
   labels:
-    controlPlaneVersion: {{ .ControlPlaneVersion }}
+    controlPlaneVersion: {{ $.K8SVersion }}
 spec:
   providerConfig:
     value:
@@ -46,8 +46,8 @@ spec:
         port: {{ .Port }}
         secretName: cluster-private-key
   versions:
-    kubelet: {{ .K8SVersion }}
-    controlPlane: {{ .K8SVersion }}
+    kubelet: {{ $.K8SVersion }}
+    controlPlane: {{ $.K8SVersion }}
 {{ end }}
 {{ range $.WorkerNodes }}
 ---
@@ -69,7 +69,7 @@ spec:
         port: {{ .Port }}
         secretName: cluster-private-key
   versions:
-    kubelet: {{ .K8SVersion }}
+    kubelet: {{ $.K8SVersion }}
 {{ end }}
 ---
 apiVersion: v1
@@ -92,7 +92,7 @@ metadata:
   generateName: control-plane-
   namespace: {{ $.Name }}
   labels:
-    controlPlaneVersion: {{ .ControlPlaneVersion }}
+    controlPlaneVersion: {{ $.K8SVersion }}
 spec:
   providerConfig:
     value:
