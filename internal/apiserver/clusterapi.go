@@ -24,7 +24,7 @@ const (
 
 type SSHClusterParams struct {
 	Name              string
-	PrivateKey        string
+	PrivateKey        string // Base64 encoded so that YAML templating works
 	PublicKey         string
 	K8SVersion        string
 	ControlPlaneNodes []SSHMachineParams
