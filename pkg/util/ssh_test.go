@@ -51,7 +51,7 @@ func TestAddPublicKeyToRemoteNode(t *testing.T) {
 		t.Skipf("Skipping because SSH_TEST_PASSWORD is not set and/or exported")
 		return
 	}
-	_, public, err := generateKeyPairAndAddToRemote(t, "localhost", "22", username, password)
+	_, public, err := generateKeyPairAndAddToRemote(t, "localhost", 22, username, password)
 
 	authKeysFile := filepath.Join(os.Getenv("HOME"), ".ssh", "authorized_keys")
 	authorizedKeysBytes, err := ioutil.ReadFile(authKeysFile)
@@ -89,7 +89,7 @@ func TestPublicKeyAccess(t *testing.T) {
 		t.Skipf("Skipping because SSH_TEST_PASSWORD is not set and/or exported")
 		return
 	}
-	private, _, err := generateKeyPairAndAddToRemote(t, "localhost", "22", username, password)
+	private, _, err := generateKeyPairAndAddToRemote(t, "localhost", 22, username, password)
 
 	// Test private key
 	testCmd := "echo cma-vmware: $(date) >> ~/.ssh/test-pvka"
@@ -100,14 +100,14 @@ func TestPublicKeyAccess(t *testing.T) {
 		return
 	}
 
-	err = ExecuteCommandOnRemoteNode("localhost", "22", username, authMethod, testCmd)
+	err = ExecuteCommandOnRemoteNode("localhost", 22, username, authMethod, testCmd)
 	if err != nil {
 		t.Errorf("Failed to execute test command via private key")
 		return
 	}
 }
 
-func generateKeyPairAndAddToRemote(t *testing.T, host string, port string, username string, password string) (private string, public string, err error) {
+func generateKeyPairAndAddToRemote(t *testing.T, host string, port int32, username string, password string) (private string, public string, err error) {
 	private, public, err = GenerateSSHKeyPair()
 	if err != nil {
 		t.Errorf("Error generating ssh key pair: %s", err)
