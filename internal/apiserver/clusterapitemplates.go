@@ -79,7 +79,7 @@ metadata:
   name: cluster-private-key
   namespace: {{ $.Name }}
 data:
-  private-key: {{ $.PrivateKey }}
+  private-key: {{ $.Base64PrivateKey }}
   pass-phrase: ""
 `
 

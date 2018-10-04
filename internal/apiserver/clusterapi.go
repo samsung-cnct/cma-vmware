@@ -25,6 +25,7 @@ const (
 type SSHClusterParams struct {
 	Name              string
 	PrivateKey        string
+	Base64PrivateKey  string
 	PublicKey         string
 	K8SVersion        string
 	ControlPlaneNodes []SSHMachineParams
@@ -91,9 +92,6 @@ func RenderClusterManifests(cluster SSHClusterParams) (string, error) {
 		return "", err
 	}
 
-	encodedPrivateKey := base64.StdEncoding.EncodeToString([]byte(cluster.PrivateKey))
-	cluster.PrivateKey = encodedPrivateKey
-
 	var tmplBuf bytes.Buffer
 	err = tmpl.Execute(&tmplBuf, cluster)
 	if err != nil {
@@ -110,6 +108,7 @@ func PrepareNodes(cluster *SSHClusterParams) error {
 	}
 
 	cluster.PrivateKey = private
+	cluster.Base64PrivateKey = base64.StdEncoding.EncodeToString([]byte(cluster.PrivateKey))
 	cluster.PublicKey = public
 
 	for _, node := range cluster.ControlPlaneNodes {
