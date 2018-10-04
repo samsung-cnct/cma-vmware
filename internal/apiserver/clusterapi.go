@@ -131,12 +131,12 @@ func setupPrivateKeyAccess(machine SSHMachineParams, privateKey string, publicKe
 
 	err := util.AddPublicKeyToRemoteNode(
 		machine.Host,
-		string(machine.Port),
+		machine.Port,
 		machine.Username,
 		machine.Password,
 		publicKey)
 	if err != nil {
-		fmt.Printf("Failed to add public key to %s@%s:%s\n",
+		fmt.Printf("ERROR: Failed to add public key to %s@%s:%d\n",
 			machine.Username, machine.Host, machine.Port)
 		return err
 	}
@@ -146,13 +146,13 @@ func setupPrivateKeyAccess(machine SSHMachineParams, privateKey string, publicKe
 
 	authMethod, err := util.SSHAuthMethPublicKey(privateKey)
 	if err != nil {
-		fmt.Printf("Failed generate a public key for ssh authentication")
+		fmt.Printf("ERROR: Failed generate a public key for ssh authentication")
 		return err
 	}
 
-	err = util.ExecuteCommandOnRemoteNode(machine.Host, string(machine.Port), machine.Username, authMethod, testCmd)
+	err = util.ExecuteCommandOnRemoteNode(machine.Host, machine.Port, machine.Username, authMethod, testCmd)
 	if err != nil {
-		fmt.Printf("Failed to execute test command via private key on remote node")
+		fmt.Printf("ERROR: Failed to execute test command via private key on remote node")
 		return err
 	}
 

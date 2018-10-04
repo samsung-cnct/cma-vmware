@@ -57,7 +57,7 @@ func GenerateSSHKeyPair() (private string, public string, err error) {
 }
 
 // AddPublicKeyToRemoteNode will add the publicKey to the username@host:port's authorized_keys file w/password
-func AddPublicKeyToRemoteNode(host string, port string, username string, password string, publicKey string) error {
+func AddPublicKeyToRemoteNode(host string, port int32, username string, password string, publicKey string) error {
 	var remoteAuthorizedKeysFile = filepath.Join("${HOME}", ".ssh", "authorized_keys")
 
 	remoteCmd := fmt.Sprintf("echo %s >> %s && chmod 600 %s",
@@ -75,10 +75,10 @@ func AddPublicKeyToRemoteNode(host string, port string, username string, passwor
 }
 
 // ExecuteCommandOnRemoteNode executes the commmand on username@host:port using the authMethed
-func ExecuteCommandOnRemoteNode(host string, port string, username string, authMethod ssh.AuthMethod, command string) error {
+func ExecuteCommandOnRemoteNode(host string, port int32, username string, authMethod ssh.AuthMethod, command string) error {
 	config := sshClientConfig(username, authMethod)
 
-	client, err := ssh.Dial("tcp", fmt.Sprintf("%s:%s", host, port), config)
+	client, err := ssh.Dial("tcp", fmt.Sprintf("%s:%d", host, port), config)
 	if err != nil {
 		fmt.Printf("ERROR: Failed to ssh into remote node (%s): %s\n", host, err)
 		return err
