@@ -106,8 +106,8 @@ func PrepareNodes(cluster *SSHClusterParams) error {
 		return err
 	}
 
-	cluster.PrivateKey = base64.StdEncoding.EncodeToString([]byte(cluster.PrivateKey))
-	cluster.PublicKey = public
+	cluster.PrivateKey = base64.StdEncoding.EncodeToString([]byte(private))
+	cluster.PublicKey = base64.StdEncoding.EncodeToString([]byte(public))
 
 	for _, node := range cluster.ControlPlaneNodes {
 		err := setupPrivateKeyAccess(node, private, public)
@@ -177,9 +177,11 @@ func RenderMachineManifests(cluster SSHClusterParams) (string, error) {
 
 func CreateSSHCluster(in *pb.CreateClusterMsg) error {
 	cluster := TranslateCreateClusterMsg(in)
-	err := PrepareNodes(&cluster)
-	if err != nil {
-		return err
+	if cluster.PrivateKey == "" {
+		err := PrepareNodes(&cluster)
+		if err != nil {
+			return err
+		}
 	}
 
 	manifests, err := RenderClusterManifests(cluster)
