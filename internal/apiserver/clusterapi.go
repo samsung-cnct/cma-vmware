@@ -26,8 +26,8 @@ const (
 
 type SSHClusterParams struct {
 	Name              string
-	PrivateKey        string // This is a base64 encoded, PEM EC private key
-	PublicKey         string
+	PrivateKey        string // These are base64 _and_ PEM encoded Eliptic
+	PublicKey         string // Curve (EC) keys used in JSON and YAML.
 	K8SVersion        string
 	ControlPlaneNodes []SSHMachineParams
 	WorkerNodes       []SSHMachineParams
@@ -366,7 +366,11 @@ func patchMachineVersions(clusterName, machineName, controlPlaneVersion, kubelet
 		_, err := RunCommand(cmdName, cmdArgs, "", cmdTimeout)
 		if err != nil {
 			cmdArgs = []string{"get", "machine", machineName, "-n", clusterName, "-o", "jsonpath={.items[*].spec.versions.controlPlane}"}
-			observeredVersionBuffer, _ := RunCommand(cmdName, cmdArgs, "", cmdTimeout)
+			observeredVersionBuffer, err := RunCommand(cmdName, cmdArgs, "", cmdTimeout)
+			if err != nil {
+				return err
+			}
+
 			observeredVersion := string(observeredVersionBuffer.Bytes())
 			if observeredVersion != controlPlaneVersion {
 				return fmt.Errorf("failed to set controlPlane version (from %s to %s) for machine %s in cluster %s)",
@@ -379,7 +383,11 @@ func patchMachineVersions(clusterName, machineName, controlPlaneVersion, kubelet
 	_, err := RunCommand(cmdName, cmdArgs, "", cmdTimeout)
 	if err != nil {
 		cmdArgs = []string{"get", "machine", machineName, "-n", clusterName, "-o", "jsonpath={.items[*].spec.versions.kubelet}"}
-		observeredVersionBuffer, _ := RunCommand(cmdName, cmdArgs, "", cmdTimeout)
+		observeredVersionBuffer, err := RunCommand(cmdName, cmdArgs, "", cmdTimeout)
+		if err != nil {
+			return err
+		}
+
 		observeredVersion := string(observeredVersionBuffer.Bytes())
 		if observeredVersion != kubeletVersion {
 			return fmt.Errorf("failed to set kubelet version (from %s to %s) for machine %s in cluster %s)",
