@@ -1,6 +1,7 @@
 package apiserver
 
 import (
+	"bufio"
 	"bytes"
 	"encoding/base64"
 	"errors"
@@ -20,7 +21,7 @@ const (
 	kubectlCmd = "kubectl"
 
 	maxApplyTimeout   = 30
-	maxUpgradeTimeout = 60 // !? Should be longer once we fix the check in waitForKubeletVersion()
+	maxUpgradeTimeout = 300 // !? TODO: Determine a better value for this.
 	upgradeRetrySleep = 5
 )
 
@@ -257,9 +258,9 @@ func DeleteSSHCluster(clusterName string) error {
 }
 
 // The kubeconfig for each cluster is stored as a Secret.
-func GetKubeConfig(clusterName string) (string, error) {
+func GetKubeConfig(clusterName string) ([]byte, error) {
 	if clusterName == "" {
-		return "", errors.New("clusterName can not be nil")
+		return nil, errors.New("clusterName can not be nil")
 	}
 
 	cmdName := kubectlCmd
@@ -269,15 +270,15 @@ func GetKubeConfig(clusterName string) (string, error) {
 	cmdArgs = []string{"get", "secret", clusterName + "-kubeconfig", "-n", clusterName, "-o", "jsonpath={.data.kubeconfig}"}
 	encodedKubeconfig, err := RunCommand(cmdName, cmdArgs, "", cmdTimeout)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 
 	decodedKubeconfig, err := base64.StdEncoding.DecodeString(string(encodedKubeconfig.Bytes()))
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 
-	return string(decodedKubeconfig), nil
+	return decodedKubeconfig, nil
 }
 
 func ListSSHClusters() ([]string, error) {
@@ -365,7 +366,7 @@ func patchMachineVersions(clusterName, machineName, controlPlaneVersion, kubelet
 		cmdArgs = []string{"patch", "machine", machineName, "-n", clusterName, "-p", `{"spec":{"versions":{"controlPlane":"` + controlPlaneVersion + `"}}}`}
 		_, err := RunCommand(cmdName, cmdArgs, "", cmdTimeout)
 		if err != nil {
-			cmdArgs = []string{"get", "machine", machineName, "-n", clusterName, "-o", "jsonpath={.items[*].spec.versions.controlPlane}"}
+			cmdArgs = []string{"get", "machine", machineName, "-n", clusterName, "-o", "jsonpath={.spec.versions.controlPlane}"}
 			observeredVersionBuffer, err := RunCommand(cmdName, cmdArgs, "", cmdTimeout)
 			if err != nil {
 				return err
@@ -382,7 +383,7 @@ func patchMachineVersions(clusterName, machineName, controlPlaneVersion, kubelet
 	cmdArgs = []string{"patch", "machine", machineName, "-n", clusterName, "-p", `{"spec":{"versions":{"kubelet":"` + kubeletVersion + `"}}}`}
 	_, err := RunCommand(cmdName, cmdArgs, "", cmdTimeout)
 	if err != nil {
-		cmdArgs = []string{"get", "machine", machineName, "-n", clusterName, "-o", "jsonpath={.items[*].spec.versions.kubelet}"}
+		cmdArgs = []string{"get", "machine", machineName, "-n", clusterName, "-o", "jsonpath={.spec.versions.kubelet}"}
 		observeredVersionBuffer, err := RunCommand(cmdName, cmdArgs, "", cmdTimeout)
 		if err != nil {
 			return err
@@ -400,23 +401,44 @@ func patchMachineVersions(clusterName, machineName, controlPlaneVersion, kubelet
 
 // Waits for the node associated with the machine namespace/name to report
 // the expected kubelet version.
-func waitForKubeletVersion(machineName, expectedVersion string) error {
+func waitForKubeletVersion(clusterName, machineName, expectedVersion string) error {
 	done := make(chan error, 1)
 	go func() {
 		for i := 0; i*upgradeRetrySleep < maxUpgradeTimeout; i++ {
-			// !? TODO: We need a stronger link between machines and nodes.
-			// See https://github.com/kubernetes-sigs/cluster-api/issues/497
-			reportedVersion, err := "0.0.0", error(nil)
+			cmdName := kubectlCmd
+			cmdArgs := []string{"--help"}
+			cmdTimeout := time.Duration(maxApplyTimeout) * time.Second
+
+			// !? This is searching the wrong cluster. We must save and pass the correct kubeconfig.
+			// TODO: We need a stronger link between machines and nodes.
+			// See https://github.com/kubernetes-sigs/cluster-api/issues/520
+			cmdArgs = []string{"get", "nodes", "-o", "go-template={{range .items}}{{.metadata.name}} {{.metadata.annotations.machine}}{{\"\\n\"}}{{end}}"}
+			reportedVersionBuffer, err := RunCommand(cmdName, cmdArgs, "", cmdTimeout)
 			if err != nil {
 				done <- err
 				break
+			}
+
+			var reportedName, reportedVersion string
+			scanner := bufio.NewScanner(strings.NewReader(string(reportedVersionBuffer.Bytes())))
+			for scanner.Scan() {
+				columns := strings.Split(scanner.Text(), " ")
+				if len(columns) != 2 {
+					fmt.Printf("Unable to parse version in waitForKubeletVersion(%s, %s, %s): %s",
+						clusterName, machineName, expectedVersion, columns)
+					continue
+				}
+				reportedName, reportedVersion = columns[0], columns[1]
+				if reportedName == machineName {
+					break
+				}
 			}
 
 			if expectedVersion == reportedVersion {
 				break
 			}
 
-			time.Sleep(upgradeRetrySleep)
+			time.Sleep(time.Duration(upgradeRetrySleep) * time.Second)
 		}
 	}()
 
@@ -450,12 +472,12 @@ func UpgradeSSHCluster(clusterName, k8sVersion string) error {
 		return err
 	}
 
-	// Update control plane..
+	// Update control plane.
 	var controlPlaneMachines, workerMachines []string
 	for _, machineName := range strings.Split(string(machineNames.Bytes()), " ") {
 		// Determine which machines are masters by looking for non-empty
 		// controlPlane fields.
-		cmdArgs = []string{"get", "machine", machineName, "-n", clusterName, "-o", "jsonpath={.items[*].spec.versions.controlPlane}"}
+		cmdArgs = []string{"get", "machine", machineName, "-n", clusterName, "-o", "jsonpath={.spec.versions.controlPlane}"}
 		controlPlaneVersionBuffer, err := RunCommand(cmdName, cmdArgs, "", cmdTimeout)
 		if err != nil {
 			return err
@@ -473,12 +495,12 @@ func UpgradeSSHCluster(clusterName, k8sVersion string) error {
 			// Wait for node to be updated before proceeding to the
 			// next one. This ensures the control plane is available
 			// while the workers are upgraded.
-			err = waitForKubeletVersion(machineName, k8sVersion)
+			err = waitForKubeletVersion(clusterName, machineName, k8sVersion)
 			if err != nil {
 				return err
 			}
 		} else {
-			// Remeber worker nodes for later.
+			// Remeber worker machines for later.
 			workerMachines = append(workerMachines, machineName)
 		}
 	}
@@ -492,7 +514,7 @@ func UpgradeSSHCluster(clusterName, k8sVersion string) error {
 
 		// Wait for node to be updated before proceeding to the next
 		// one.
-		err = waitForKubeletVersion(machineName, k8sVersion)
+		err = waitForKubeletVersion(clusterName, machineName, k8sVersion)
 		if err != nil {
 			return err
 		}

@@ -34,7 +34,7 @@ func (s *Server) CreateCluster(ctx context.Context, in *pb.CreateClusterMsg) (*p
 }
 
 func (s *Server) GetCluster(ctx context.Context, in *pb.GetClusterMsg) (*pb.GetClusterReply, error) {
-	kubeconfig, err := GetKubeConfig(in.Name)
+	kubeconfigBytes, err := GetKubeConfig(in.Name)
 	if err != nil {
 		return &pb.GetClusterReply{
 			Ok: true,
@@ -57,7 +57,7 @@ func (s *Server) GetCluster(ctx context.Context, in *pb.GetClusterMsg) (*pb.GetC
 			Id:         "stub",
 			Name:       in.Name,
 			Status:     "Yes",
-			Kubeconfig: kubeconfig,
+			Kubeconfig: string(kubeconfigBytes),
 		},
 	}, nil
 }
