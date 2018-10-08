@@ -34,11 +34,13 @@ func (s *Server) CreateCluster(ctx context.Context, in *pb.CreateClusterMsg) (*p
 }
 
 func (s *Server) GetCluster(ctx context.Context, in *pb.GetClusterMsg) (*pb.GetClusterReply, error) {
-	kubeconfig, err := GetKubeConfig(in.Name)
+	kubeconfigBytes, err := GetKubeConfig(in.Name)
 	if err != nil {
 		return &pb.GetClusterReply{
 			Ok: true,
 			Cluster: &pb.ClusterDetailItem{
+				// TODO: Standardize on the nil UUID for bare metal?
+				// 00000000-0000-0000-0000-000000 000000?
 				Id:         "stub",
 				Name:       in.Name,
 				Status:     "GetFailed",
@@ -47,13 +49,15 @@ func (s *Server) GetCluster(ctx context.Context, in *pb.GetClusterMsg) (*pb.GetC
 		}, nil
 	}
 
+	// TODO: Set status based on global observations of all nodes.
+
 	return &pb.GetClusterReply{
 		Ok: true,
 		Cluster: &pb.ClusterDetailItem{
 			Id:         "stub",
 			Name:       in.Name,
 			Status:     "Yes",
-			Kubeconfig: kubeconfig,
+			Kubeconfig: string(kubeconfigBytes),
 		},
 	}, nil
 }
@@ -101,7 +105,7 @@ func (s *Server) AdjustClusterNodes(ctx context.Context, in *pb.AdjustClusterMsg
 
 func (s *Server) GetUpgradeClusterInformation(ctx context.Context, in *pb.GetUpgradeClusterInformationMsg) (*pb.GetUpgradeClusterInformationReply, error) {
 	// TODO: Do not hard code this list. Before adding versions, update
-	// the machine-setup ConfigMap in defined here: https://goo.gl/Wi81Z9
+	// the machine-setup ConfigMap defined here: https://goo.gl/Wi81Z9
 	return &pb.GetUpgradeClusterInformationReply{
 		Versions: []string{
 			"1.10.4",
