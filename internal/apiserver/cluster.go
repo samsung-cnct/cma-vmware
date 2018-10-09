@@ -18,7 +18,7 @@ func (s *Server) CreateCluster(ctx context.Context, in *pb.CreateClusterMsg) (*p
 			Cluster: &pb.ClusterItem{
 				Id:     "stub",
 				Name:   in.Name,
-				Status: "CreateFailed",
+				Status: pb.ClusterStatus_ERROR,
 			},
 		}, nil
 	}
@@ -28,7 +28,7 @@ func (s *Server) CreateCluster(ctx context.Context, in *pb.CreateClusterMsg) (*p
 		Cluster: &pb.ClusterItem{
 			Id:     "stub",
 			Name:   in.Name,
-			Status: "Creating",
+			Status: pb.ClusterStatus_PROVISIONING,
 		},
 	}, nil
 }
@@ -43,7 +43,7 @@ func (s *Server) GetCluster(ctx context.Context, in *pb.GetClusterMsg) (*pb.GetC
 				// 00000000-0000-0000-0000-000000 000000?
 				Id:         "stub",
 				Name:       in.Name,
-				Status:     "GetFailed",
+				Status:     pb.ClusterStatus_ERROR,
 				Kubeconfig: "",
 			},
 		}, nil
@@ -56,7 +56,7 @@ func (s *Server) GetCluster(ctx context.Context, in *pb.GetClusterMsg) (*pb.GetC
 		Cluster: &pb.ClusterDetailItem{
 			Id:         "stub",
 			Name:       in.Name,
-			Status:     "Yes",
+			Status:     pb.ClusterStatus_RUNNING,
 			Kubeconfig: string(kubeconfigBytes),
 		},
 	}, nil
@@ -84,7 +84,7 @@ func (s *Server) GetClusterList(ctx context.Context, in *pb.GetClusterListMsg) (
 		clusters = append(clusters, &pb.ClusterItem{
 			Id:     "stub",
 			Name:   name,
-			Status: "Yes",
+			Status: pb.ClusterStatus_RUNNING,
 		})
 	}
 
