@@ -86,7 +86,7 @@ func ExecuteCommandOnRemoteNode(host string, port int32, username string, authMe
 
 	session, err := client.NewSession()
 	if err != nil {
-		fmt.Printf("ERROR: Failed to creae ssh session: %s\n", err)
+		fmt.Printf("ERROR: Failed to create ssh session: %s\n", err)
 		return err
 	}
 	defer session.Close()
