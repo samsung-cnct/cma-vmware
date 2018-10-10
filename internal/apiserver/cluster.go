@@ -4,6 +4,8 @@ import (
 	"fmt"
 
 	"golang.org/x/net/context"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 
 	pb "github.com/samsung-cnct/cma-vmware/pkg/generated/api"
 )
@@ -36,6 +38,15 @@ func (s *Server) CreateCluster(ctx context.Context, in *pb.CreateClusterMsg) (*p
 func (s *Server) GetCluster(ctx context.Context, in *pb.GetClusterMsg) (*pb.GetClusterReply, error) {
 	kubeconfigBytes, err := GetKubeConfig(in.Name)
 	if err != nil {
+		fmt.Printf("INFO: GetCluster unable to getKubeconfig secret for cluster %s\n", in.Name)
+	}
+	clusterExists, err := ClusterExists(in.Name)
+	if !clusterExists {
+		return nil, status.Error(codes.NotFound, err.Error())
+	}
+	clusterStatus, err := GetSSHClusterStatus(in, kubeconfigBytes)
+	if err != nil {
+		fmt.Printf("ERROR: GetCluster, %v, err %v\n", in.Name, err)
 		return &pb.GetClusterReply{
 			Ok: true,
 			Cluster: &pb.ClusterDetailItem{
@@ -49,14 +60,12 @@ func (s *Server) GetCluster(ctx context.Context, in *pb.GetClusterMsg) (*pb.GetC
 		}, nil
 	}
 
-	// TODO: Set status based on global observations of all nodes.
-
 	return &pb.GetClusterReply{
 		Ok: true,
 		Cluster: &pb.ClusterDetailItem{
 			Id:         "stub",
 			Name:       in.Name,
-			Status:     pb.ClusterStatus_RUNNING,
+			Status:     clusterStatus,
 			Kubeconfig: string(kubeconfigBytes),
 		},
 	}, nil
