@@ -19,6 +19,7 @@ import (
 
 const (
 	kubectlCmd = "kubectl"
+	sshCmd     = "ssh"
 
 	maxApplyTimeout   = 30
 	maxUpgradeTimeout = 300 // !? TODO: Determine a better value for this.
@@ -405,15 +406,21 @@ func waitForKubeletVersion(clusterName, machineName, expectedVersion string) err
 	done := make(chan error, 1)
 	go func() {
 		for i := 0; i*upgradeRetrySleep < maxUpgradeTimeout; i++ {
-			cmdName := kubectlCmd
 			cmdArgs := []string{"--help"}
 			cmdTimeout := time.Duration(maxApplyTimeout) * time.Second
 
-			// !? This is searching the wrong cluster. We must save and pass the correct kubeconfig.
+			// Determine IP address of machine we are waiting for.
+			cmdArgs = []string{kubectlCmd, "get", "machine", machineName, "-n", clusterName, "-o", "go-template={{.spec.providerConfig.value.sshConfig.host}}"}
+			machineIPBuffer, err := RunCommand(kubectlCmd, cmdArgs, "", cmdTimeout)
+			machineIP := string(machineIPBuffer.Bytes())
+
+			// Look for an annotation on the node which is set at the end
+			// of the bootstrap script. Log on to node so that we have
+			// access to the kubeconfig for the remote cluster.
 			// TODO: We need a stronger link between machines and nodes.
 			// See https://github.com/kubernetes-sigs/cluster-api/issues/520
-			cmdArgs = []string{"get", "nodes", "-o", "go-template={{range .items}}{{.metadata.name}} {{.metadata.annotations.machine}}{{\"\\n\"}}{{end}}"}
-			reportedVersionBuffer, err := RunCommand(cmdName, cmdArgs, "", cmdTimeout)
+			cmdArgs = []string{machineIP, kubectlCmd, "get", "nodes", "-o", "go-template={{range .items}}{{.metadata.name}} {{.metadata.annotations.machine}}{{\"\\n\"}}{{end}}"}
+			reportedVersionBuffer, err := RunCommand(sshCmd, cmdArgs, "", cmdTimeout)
 			if err != nil {
 				done <- err
 				break
