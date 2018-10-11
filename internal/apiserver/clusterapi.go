@@ -414,7 +414,7 @@ func waitForKubeletVersion(clusterName, machineName, expectedVersion string) err
 				"go-template={{.spec.providerConfig.value.sshConfig.host}} {{.spec.providerConfig.value.sshConfig.port}} {{.spec.providerConfig.value.sshConfig.username}}"}
 			resultBuffer, err := RunCommand(kubectlCmd, cmdArgs, "", cmdTimeout)
 
-			resultStrings = strings.Split(string(resultBuffer.Bytes()), " ")
+			resultStrings := strings.Split(string(resultBuffer.Bytes()), " ")
 			if len(resultStrings) != 3 {
 				done <- fmt.Errorf("waitForKubeletVersion: not enough fields in result")
 				break
