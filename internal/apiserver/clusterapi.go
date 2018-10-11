@@ -420,7 +420,7 @@ func waitForKubeletVersion(clusterName, machineName, expectedVersion string) err
 				break
 			}
 			machineIP := resultStrings[0]
-			machinePort := restultStrings[1]
+			machinePort := resultStrings[1]
 			machineUsername := resultStrings[2]
 			// Look for an annotation on the node which is set at the end
 			// of the bootstrap script. Log on to node so that we have
