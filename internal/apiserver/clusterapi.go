@@ -7,6 +7,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"io/ioutil"
 	"os"
 	"os/exec"
 	"strings"
@@ -25,6 +26,8 @@ const (
 	maxUpgradeTimeout = 300 // !? TODO: Determine a better value for this.
 	upgradeRetrySleep = 5
 )
+
+var getNodesCmdArgs = []string{"get", "nodes", "-o", "go-template='{{range .items}}{{.metadata.name}} {{.status.nodeInfo.kubeletVersion}} {{.metadata.annotations.machine}}{{\"\\n\"}}{{end}}'"}
 
 type SSHClusterParams struct {
 	Name              string
@@ -400,6 +403,112 @@ func patchMachineVersions(clusterName, machineName, controlPlaneVersion, kubelet
 	return nil
 }
 
+// parseVersionFromNodes takes formatted output from get nodes, and the machine
+// name 'namespace/machineName'. It returns the semantic version of the node
+func parseVersionFromNodes(outbytes []byte, fullMachineName string) (string, error) {
+	for _, nodeLine := range strings.Split(string(outbytes), "\n") {
+		if strings.Contains(nodeLine, fullMachineName) {
+			strs := strings.Split(string(nodeLine), " ")
+			if len(strs) != 3 {
+				return "", errors.New("ERROR: parseVersionFromNodes, could not parse version")
+			}
+			version := semanticVersion(strs[1])
+			return version, nil
+		}
+	}
+	return "", errors.New("ERROR: parseVersionFromNodes, could not find fullmachineName " + fullMachineName)
+}
+
+func kubeletVersionMatch(clusterName string, machineName string, expectedVersion string, kubeconfigEnv string) (bool, error) {
+	if machineName == "" {
+		fmt.Printf("ERROR: kubeletVersionMatch, invalid machineName\n")
+		return false, nil
+	}
+	cmdName := kubectlCmd
+	cmdArgs := getNodesCmdArgs
+	fmt.Printf("Running command \"%v %v\"\n", cmdName, strings.Join(cmdArgs, " "))
+	cmd := exec.Command("kubectl", cmdArgs...)
+	additionalEnv := kubeconfigEnv
+	newEnv := append(os.Environ(), additionalEnv)
+	cmd.Env = newEnv
+	out, err := cmd.CombinedOutput()
+	if err != nil {
+		fmt.Printf("ERROR: kubeletVersionMatch, cmd.CombinedOutput (Run) failed, %v\n", err)
+		return false, err
+	}
+	fullMachineName := clusterName + "/" + machineName
+	nodeVersion, err := parseVersionFromNodes(out, fullMachineName)
+	if err != nil {
+		return false, err
+	}
+	if nodeVersion != expectedVersion {
+		return false, nil
+	}
+	return true, nil
+}
+
+func ClusterExists(clusterName string) (bool, error) {
+	cmdName := kubectlCmd
+	cmdTimeout := time.Duration(maxApplyTimeout) * time.Second
+	getClusterCmdArgs := []string{"get", "clusters", "-n", clusterName, "-o", "go-template={{range .items}}{{.metadata.name}}{{\"\\n\"}}{{end}}"}
+	machineName, err := RunCommand(cmdName, getClusterCmdArgs, "", cmdTimeout)
+	if err != nil {
+		return false, err
+	}
+	if len(machineName.Bytes()) == 0 {
+		return false, errors.New("INFO: ClusterExists, Cluster NotFound")
+	}
+	return true, nil
+}
+
+func GetSSHClusterStatus(in *pb.GetClusterMsg, kubeconfig []byte) (pb.ClusterStatus, error) {
+	cmdName := kubectlCmd
+	cmdTimeout := time.Duration(maxApplyTimeout) * time.Second
+	// init return value
+	var clusterStatus pb.ClusterStatus = pb.ClusterStatus_STATUS_UNSPECIFIED
+	if kubeconfig == nil {
+		return pb.ClusterStatus_PROVISIONING, nil
+	}
+
+	file, err := ioutil.TempFile("/tmp", in.Name)
+	if err != nil {
+		return clusterStatus, err
+	}
+	kubeconfigfn := file.Name()
+	err = ioutil.WriteFile(kubeconfigfn, kubeconfig, 0644)
+	if err != nil {
+		panic(err)
+	}
+	defer os.Remove(file.Name())
+
+	kubeconfigEnv := "KUBECONFIG=" + file.Name()
+	fmt.Printf("INFO: temporarily writing kubeconfig to %s\n", kubeconfigfn)
+
+	// Get a list of all machines.
+	getMachineCmdArgs := []string{"get", "machines", "-n", in.Name, "-o", "go-template={{range .items}}{{.metadata.name}} {{.spec.versions.kubelet}}{{\"\\n\"}}{{end}}"}
+	machineNames, err := RunCommand(cmdName, getMachineCmdArgs, "", cmdTimeout)
+	if err != nil {
+		return clusterStatus, err
+	}
+
+	for _, machineName := range strings.Split(string(machineNames.Bytes()), "\n") {
+		// compare spec version with running node version
+		machineInfo := strings.Split(machineName, " ")
+		if len(machineInfo) == 2 {
+			matchingVersions, err := kubeletVersionMatch(in.Name, machineInfo[0], machineInfo[1], kubeconfigEnv)
+			if err != nil {
+				fmt.Printf("ERROR: GetSSHClusterStatus, kubelet version match error %v\n", err)
+			}
+			if !matchingVersions {
+				clusterStatus = pb.ClusterStatus_RECONCILING
+				break
+			}
+		}
+		clusterStatus = pb.ClusterStatus_RUNNING
+	}
+	return clusterStatus, nil
+}
+
 // Waits for the node associated with the machine namespace/name to report
 // the expected kubelet version.
 func waitForKubeletVersion(clusterName, machineName, expectedVersion string) error {
@@ -528,6 +637,12 @@ func UpgradeSSHCluster(clusterName, k8sVersion string) error {
 	}
 
 	return nil
+}
+
+func semanticVersion(version string) string {
+	semVersion := strings.TrimPrefix(version, "v")
+	semVersion = strings.TrimSpace(semVersion)
+	return semVersion
 }
 
 // Run command with args and kill if timeout is reached. If streamIn is not empty it will
