@@ -410,7 +410,7 @@ func waitForKubeletVersion(clusterName, machineName, expectedVersion string) err
 			cmdTimeout := time.Duration(maxApplyTimeout) * time.Second
 
 			// Determine IP address of machine we are waiting for.
-			cmdArgs = []string{kubectlCmd, "get", "machine", machineName, "-n", clusterName, "-o",
+			cmdArgs = []string{"get", "machine", machineName, "-n", clusterName, "-o",
 				"go-template={{.spec.providerConfig.value.sshConfig.host}} {{.spec.providerConfig.value.sshConfig.port}} {{.spec.providerConfig.value.sshConfig.username}}"}
 			resultBuffer, err := RunCommand(kubectlCmd, cmdArgs, "", cmdTimeout)
 
@@ -422,12 +422,13 @@ func waitForKubeletVersion(clusterName, machineName, expectedVersion string) err
 			machineIP := resultStrings[0]
 			machinePort := resultStrings[1]
 			machineUsername := resultStrings[2]
+
 			// Look for an annotation on the node which is set at the end
 			// of the bootstrap script. Log on to node so that we have
 			// access to the kubeconfig for the remote cluster.
 			// TODO: We need a stronger link between machines and nodes.
 			// See https://github.com/kubernetes-sigs/cluster-api/issues/520
-			cmdArgs = []string{machineUsername + "@" + machineIP + ":" + machinePort, kubectlCmd, "get", "nodes", "-o", "go-template={{range .items}}{{.metadata.name}} {{.metadata.annotations.machine}}{{\"\\n\"}}{{end}}"}
+			cmdArgs = []string{machineUsername + "@" + machineIP, "-p", machinePort, kubectlCmd, "get", "nodes", "-o", "go-template={{range .items}}{{.metadata.name}} {{.metadata.annotations.machine}}{{\"\\n\"}}{{end}}"}
 			reportedVersionBuffer, err := RunCommand(sshCmd, cmdArgs, "", cmdTimeout)
 			if err != nil {
 				done <- err
