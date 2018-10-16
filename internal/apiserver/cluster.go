@@ -126,8 +126,14 @@ func (s *Server) GetUpgradeClusterInformation(ctx context.Context, in *pb.GetUpg
 }
 
 func (s *Server) UpgradeCluster(ctx context.Context, in *pb.UpgradeClusterMsg) (*pb.UpgradeClusterReply, error) {
-	err := UpgradeSSHCluster(in.Name, in.Version)
+	kubeconfigBytes, err := GetKubeConfig(in.Name)
 	if err != nil {
+		fmt.Printf("INFO: UpgradeCluster unable to getKubeconfig secret for cluster %s\n", in.Name)
+		return nil, status.Error(codes.NotFound, err.Error())
+	}
+	err = UpgradeSSHCluster(in.Name, in.Version, kubeconfigBytes)
+	if err != nil {
+		fmt.Printf("ERROR: UpgradeCluster, %v, err %v\n", in.Name, err)
 		return &pb.UpgradeClusterReply{
 			Ok: true,
 		}, err
