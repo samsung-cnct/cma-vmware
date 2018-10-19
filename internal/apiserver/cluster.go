@@ -37,7 +37,7 @@ func (s *Server) GetCluster(ctx context.Context, in *pb.GetClusterMsg) (*pb.GetC
 	if !clusterExists {
 		return nil, status.Error(codes.NotFound, err.Error())
 	}
-	clusterStatus, err := GetSSHClusterStatus(in, kubeconfigBytes)
+	clusterStatus, err := GetSSHClusterStatus(in.Name, kubeconfigBytes)
 	if err != nil {
 		fmt.Printf("ERROR: GetCluster, %v, err %v\n", in.Name, err)
 		return &pb.GetClusterReply{
@@ -87,10 +87,17 @@ func (s *Server) GetClusterList(ctx context.Context, in *pb.GetClusterListMsg) (
 
 	var clusters []*pb.ClusterItem
 	for _, name := range clusterNames {
+
+		kubeconfigBytes, _ := GetKubeConfig(name)
+		clusterStatus, err := GetSSHClusterStatus(name, kubeconfigBytes)
+		if err != nil {
+			fmt.Printf("ERROR: GetClusterList error getting status for cluster %v, err %v\n", name, err)
+		}
+
 		clusters = append(clusters, &pb.ClusterItem{
 			Id:     "stub",
 			Name:   name,
-			Status: pb.ClusterStatus_RUNNING,
+			Status: clusterStatus,
 		})
 	}
 

@@ -519,7 +519,7 @@ func ClusterExists(clusterName string) (bool, error) {
 	return true, nil
 }
 
-func GetSSHClusterStatus(in *pb.GetClusterMsg, kubeconfig []byte) (pb.ClusterStatus, error) {
+func GetSSHClusterStatus(clusterName string, kubeconfig []byte) (pb.ClusterStatus, error) {
 	cmdName := kubectlCmd
 	cmdTimeout := time.Duration(maxApplyTimeout) * time.Second
 	// init return value
@@ -528,7 +528,7 @@ func GetSSHClusterStatus(in *pb.GetClusterMsg, kubeconfig []byte) (pb.ClusterSta
 		return pb.ClusterStatus_PROVISIONING, nil
 	}
 
-	file, err := ioutil.TempFile("/tmp", in.Name)
+	file, err := ioutil.TempFile("/tmp", clusterName)
 	if err != nil {
 		return clusterStatus, err
 	}
@@ -541,7 +541,7 @@ func GetSSHClusterStatus(in *pb.GetClusterMsg, kubeconfig []byte) (pb.ClusterSta
 	fmt.Printf("INFO: temporarily writing kubeconfig to %s\n", kubeconfigfn)
 
 	// Get a list of all machines.
-	getMachineCmdArgs := []string{"get", "machines", "-n", in.Name, "-o", "go-template={{range .items}}{{.metadata.name}} {{.spec.versions.kubelet}}{{\"\\n\"}}{{end}}"}
+	getMachineCmdArgs := []string{"get", "machines", "-n", clusterName, "-o", "go-template={{range .items}}{{.metadata.name}} {{.spec.versions.kubelet}}{{\"\\n\"}}{{end}}"}
 	machineNames, err := RunCommand(cmdName, getMachineCmdArgs, "", cmdTimeout)
 	if err != nil {
 		return clusterStatus, err
@@ -551,7 +551,7 @@ func GetSSHClusterStatus(in *pb.GetClusterMsg, kubeconfig []byte) (pb.ClusterSta
 		// compare spec version with running node version
 		machineInfo := strings.Split(machineName, " ")
 		if len(machineInfo) == 2 {
-			matchingVersions, err := kubeletVersionMatch(in.Name, machineInfo[0], machineInfo[1], kubeconfigfn)
+			matchingVersions, err := kubeletVersionMatch(clusterName, machineInfo[0], machineInfo[1], kubeconfigfn)
 			if err != nil {
 				fmt.Printf("ERROR: GetSSHClusterStatus, kubelet version match error %v\n", err)
 			}
