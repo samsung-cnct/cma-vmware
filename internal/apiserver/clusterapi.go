@@ -228,8 +228,7 @@ func DeleteSSHCluster(clusterName string) error {
 	}
 
 	// Wait for workers to finish being deleted.
-	cmdArgs = []string{"wait", "--for=delete", "machines", "-n", clusterName, "-l", `!controlPlaneVersion`}
-	_, err = RunCommand(cmdName, cmdArgs, "", cmdTimeout)
+	err = waitForMachinesDeleted(clusterName, false)
 	if err != nil {
 		return err
 	}
@@ -242,11 +241,18 @@ func DeleteSSHCluster(clusterName string) error {
 	}
 
 	// Wait for control plane to finish being deleted.
-	cmdArgs = []string{"wait", "--for=delete", "machines", "-n", clusterName, "-l", "controlPlaneVersion"}
-	_, err = RunCommand(cmdName, cmdArgs, "", cmdTimeout)
+	err = waitForMachinesDeleted(clusterName, true)
 	if err != nil {
 		return err
 	}
+
+	// Delete the cluster resource
+	clusterCmdArgs := []string{"delete", "cluster", clusterName, "-n", clusterName}
+	_, err = RunCommand(cmdName, clusterCmdArgs, "", cmdTimeout)
+	if err != nil {
+		return err
+	}
+	time.Sleep(10 * time.Second)
 
 	// Delete the namespace and anything else in it (e.g. the Cluster, Secrets, etc.)
 	cmdArgs = []string{"delete", "namespace", clusterName}
@@ -439,6 +445,66 @@ func kubeletVersionMatch(clusterName string, machineName string, expectedVersion
 	return true, nil
 }
 
+// machinesDeleted returns true when there are no machines of the boolean
+// specified.  masters should be false when deleting workers.  masters should
+// be true when deleting masters.
+func machinesDeleted(clusterName string, masters bool) (bool, error) {
+	getMastersCmd := []string{"get", "machines", "-n", clusterName, "-l", "controlPlaneVersion"}
+	getWorkersCmd := []string{"get", "machines", "-n", clusterName, "-l", `!controlPlaneVersion`}
+	cmdName := kubectlCmd
+	cmdTimeout := time.Duration(maxApplyTimeout) * time.Second
+	var machinesFound bytes.Buffer
+	var err error
+	if masters {
+		machinesFound, err = RunCommand(cmdName, getMastersCmd, "", cmdTimeout)
+	} else {
+		machinesFound, err = RunCommand(cmdName, getWorkersCmd, "", cmdTimeout)
+	}
+	if err != nil {
+		return false, err
+	}
+	if len(machinesFound.Bytes()) == 0 {
+		return true, nil
+	}
+	return false, nil
+}
+
+// waitForMachinesDeleted polls machinesDeleted until timeout
+// clusterName is the namespace of the cluster.
+// masters should be false when deleting workers in the namespace.
+func waitForMachinesDeleted(clusterName string, masters bool) error {
+	fmt.Printf("INFO: waitForMachinesDeleted clusterName = %s, masters = %v\n", clusterName, masters)
+	done := make(chan error, 1)
+	go func() {
+		for i := 0; i*upgradeRetrySleep < maxUpgradeTimeout; i++ {
+			deleted, err := machinesDeleted(clusterName, masters)
+			if err != nil {
+				fmt.Printf("WARN: waitForMachinesDeleted, error from machinesDeleted %v\n", err)
+				done <- err
+				break
+			}
+			if deleted {
+				fmt.Printf("INFO: machines deleted for cluster %s masters %v\n", clusterName, masters)
+				done <- nil
+				break
+			}
+			time.Sleep(time.Duration(upgradeRetrySleep) * time.Second)
+		}
+	}()
+
+	select {
+	case <-time.After(maxUpgradeTimeout * time.Second):
+		return fmt.Errorf("WARN: timed out waiting for machines deleted in cluster %s.  masters %v", clusterName, masters)
+	case err := <-done:
+		if err != nil {
+			return err
+		}
+	}
+	fmt.Println("INFO: waitForMachinesDeleted returning successfully\n")
+
+	return nil
+}
+
 func ClusterExists(clusterName string) (bool, error) {
 	cmdName := kubectlCmd
 	cmdTimeout := time.Duration(maxApplyTimeout) * time.Second
@@ -501,7 +567,7 @@ func GetSSHClusterStatus(in *pb.GetClusterMsg, kubeconfig []byte) (pb.ClusterSta
 
 // Waits for the node associated with the machine namespace/name to report
 // the expected kubelet version.
-func waitForKubeletVersion(clusterName, machineName, expectedVersion string, kubeconfigfn string) error {
+func waitForKubeletVersion(clusterName string, machineName string, expectedVersion string, kubeconfigfn string) error {
 	fmt.Printf("INFO: waitforKubeletVersion clusterName = %s, machineName = %s, expectedVersion = %s\n", clusterName, machineName, expectedVersion)
 	done := make(chan error, 1)
 	go func() {
@@ -666,7 +732,7 @@ func RunCommand(name string, args []string, streamIn string, timeout time.Durati
 			panic(fmt.Sprintf("Failed to kill command %v, err %v", name, err))
 		}
 
-		return streamOut, fmt.Errorf("Command %v timed out\n", name)
+		return streamOut, fmt.Errorf("Command %v timed out", name)
 	case err := <-done:
 		// We do not print stdout because it may contain secrets.
 		fmt.Fprintf(os.Stderr, "Command %v stderr: %v\n", name, string(streamErr.Bytes()))

@@ -15,14 +15,7 @@ func (s *Server) CreateCluster(ctx context.Context, in *pb.CreateClusterMsg) (*p
 	if err != nil {
 		// TODO: Make this consistent with how the CMA does logging...
 		fmt.Printf("ERROR: CreateCluster, name %v, err %v\n", in.Name, err)
-		return &pb.CreateClusterReply{
-			Ok: false,
-			Cluster: &pb.ClusterItem{
-				Id:     "stub",
-				Name:   in.Name,
-				Status: pb.ClusterStatus_ERROR,
-			},
-		}, nil
+		return nil, status.Error(codes.Internal, err.Error())
 	}
 
 	return &pb.CreateClusterReply{
@@ -57,7 +50,7 @@ func (s *Server) GetCluster(ctx context.Context, in *pb.GetClusterMsg) (*pb.GetC
 				Status:     pb.ClusterStatus_ERROR,
 				Kubeconfig: "",
 			},
-		}, nil
+		}, err
 	}
 
 	return &pb.GetClusterReply{
@@ -72,7 +65,11 @@ func (s *Server) GetCluster(ctx context.Context, in *pb.GetClusterMsg) (*pb.GetC
 }
 
 func (s *Server) DeleteCluster(ctx context.Context, in *pb.DeleteClusterMsg) (*pb.DeleteClusterReply, error) {
-	err := DeleteSSHCluster(in.Name)
+	clusterExists, err := ClusterExists(in.Name)
+	if !clusterExists {
+		return nil, status.Error(codes.NotFound, err.Error())
+	}
+	err = DeleteSSHCluster(in.Name)
 	if err != nil {
 		return &pb.DeleteClusterReply{Ok: false, Status: "DeleteFailed"}, nil
 	}
