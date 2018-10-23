@@ -316,6 +316,26 @@ func removeDuplicates(s []string) []string {
 	return result
 }
 
+func getMachineName(clusterName string, hostIp string) (string, error) {
+	getMachinesCmdArgs := []string{"get", "machines", "-o", "go-template='{{range .items}}{{.metadata.name}} {{.spec.providerConfig.value.sshConfig.host}}{{\"\\n\"}}{{end}}'", "-n", clusterName}
+	cmdName := kubectlCmd
+	cmdTimeout := time.Duration(maxApplyTimeout) * time.Second
+	machineOutput, err := RunCommand(cmdName, getMachinesCmdArgs, "", cmdTimeout)
+	if err != nil {
+		return "", err
+	}
+	for _, machines := range strings.Split(string(machineOutput.Bytes()), "\n") {
+		machineNames := strings.Split(machines, " ")
+		if len(machineNames) != 2 {
+			return "", fmt.Errorf("could not parse machineNames, len is %v", len(machineNames))
+		}
+		if machineNames[1] == hostIp {
+			return machineNames[0], nil
+		}
+	}
+	return "", nil
+}
+
 func AdjustSSHCluster(in *pb.AdjustClusterMsg) error {
 	cmdName := kubectlCmd
 	cmdArgs := []string{"--help"}
@@ -344,18 +364,24 @@ func AdjustSSHCluster(in *pb.AdjustClusterMsg) error {
 	if err != nil {
 		return err
 	}
-
-	// Create added machines.
-	cmdArgs = []string{"create", "--validate=false", "-f", "-"}
-	_, err = RunCommand(cmdName, cmdArgs, manifests, cmdTimeout)
-	if err != nil {
-		return err
+	manifests = strings.TrimSpace(manifests)
+	if manifests != "" {
+		// Create added machines.
+		cmdArgs = []string{"create", "--validate=false", "-f", "-"}
+		_, err = RunCommand(cmdName, cmdArgs, manifests, cmdTimeout)
+		if err != nil {
+			return err
+		}
 	}
 
 	// Delete each removed machine.
 	for _, m := range in.RemoveNodes {
-		cmdArgs = []string{"delete", "machine", m.Host, "-n", in.Name}
-		_, err := RunCommand(cmdName, cmdArgs, "", cmdTimeout)
+		machineName, err := getMachineName(in.Name, m.Host)
+		if err != nil {
+			return err
+		}
+		cmdArgs = []string{"delete", "machine", machineName, "-n", in.Name}
+		_, err = RunCommand(cmdName, cmdArgs, "", cmdTimeout)
 		if err != nil {
 			return err
 		}
