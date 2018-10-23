@@ -108,9 +108,14 @@ func (s *Server) GetClusterList(ctx context.Context, in *pb.GetClusterListMsg) (
 }
 
 func (s *Server) AdjustClusterNodes(ctx context.Context, in *pb.AdjustClusterMsg) (*pb.AdjustClusterReply, error) {
-	err := AdjustSSHCluster(in)
+	clusterExists, err := ClusterExists(in.Name)
+	if !clusterExists {
+		return nil, status.Error(codes.NotFound, err.Error())
+	}
+
+	err = AdjustSSHCluster(in)
 	if err != nil {
-		return &pb.AdjustClusterReply{Ok: false}, nil
+		return nil, status.Error(codes.Internal, err.Error())
 	}
 
 	return &pb.AdjustClusterReply{Ok: true}, nil
