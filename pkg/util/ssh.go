@@ -58,12 +58,15 @@ func GenerateSSHKeyPair() (private string, public string, err error) {
 
 // AddPublicKeyToRemoteNode will add the publicKey to the username@host:port's authorized_keys file w/password
 func AddPublicKeyToRemoteNode(host string, port int32, username string, password string, publicKey string) error {
-	var remoteAuthorizedKeysFile = filepath.Join("${HOME}", ".ssh", "authorized_keys")
+	var sshDir = filepath.Join("${HOME}", ".ssh")
+	var authorizedKeysFile = filepath.Join(sshDir, "authorized_keys")
 
-	remoteCmd := fmt.Sprintf("echo %s >> %s && chmod 600 %s",
+	remoteCmd := fmt.Sprintf("mkdir -p %s && chmod 700 %s && echo %s >> %s && chmod 600 %s",
+		sshDir,
+		sshDir,
 		strings.TrimSuffix(publicKey, "\n"),
-		remoteAuthorizedKeysFile,
-		remoteAuthorizedKeysFile)
+		authorizedKeysFile,
+		authorizedKeysFile)
 
 	err := ExecuteCommandOnRemoteNode(host, port, username, ssh.Password(password), remoteCmd)
 	if err != nil {
