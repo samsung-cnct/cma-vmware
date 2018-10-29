@@ -2,6 +2,7 @@ package apiserver
 
 import (
 	"fmt"
+	"strings"
 
 	"golang.org/x/net/context"
 	"google.golang.org/grpc/codes"
@@ -71,7 +72,8 @@ func (s *Server) DeleteCluster(ctx context.Context, in *pb.DeleteClusterMsg) (*p
 	}
 	err = DeleteSSHCluster(in.Name)
 	if err != nil {
-		return &pb.DeleteClusterReply{Ok: false, Status: "DeleteFailed"}, nil
+		fmt.Printf("ERROR: DeleteCluster, %v, err %v\n", in.Name, err)
+		return nil, status.Error(codes.Internal, err.Error())
 	}
 
 	return &pb.DeleteClusterReply{Ok: true, Status: "Deleted"}, nil
@@ -83,6 +85,14 @@ func (s *Server) GetClusterList(ctx context.Context, in *pb.GetClusterListMsg) (
 		return &pb.GetClusterListReply{
 			Ok: false,
 		}, err
+	}
+
+	if strings.TrimSpace(strings.Join(clusterNames, "")) == "" {
+		// empty list of strings
+		return &pb.GetClusterListReply{
+			Ok:       true,
+			Clusters: nil,
+		}, nil
 	}
 
 	var clusters []*pb.ClusterItem
@@ -143,9 +153,7 @@ func (s *Server) UpgradeCluster(ctx context.Context, in *pb.UpgradeClusterMsg) (
 	err = UpgradeSSHCluster(in.Name, in.Version, kubeconfigBytes)
 	if err != nil {
 		fmt.Printf("ERROR: UpgradeCluster, %v, err %v\n", in.Name, err)
-		return &pb.UpgradeClusterReply{
-			Ok: true,
-		}, err
+		return nil, status.Error(codes.Internal, err.Error())
 	}
 	return &pb.UpgradeClusterReply{
 		Ok: true,
