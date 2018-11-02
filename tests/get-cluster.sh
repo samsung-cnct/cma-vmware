@@ -14,7 +14,7 @@ main() {
     "https://${CLUSTER_API}:${CLUSTER_API_PORT}/api/v1/cluster?provider=vmware&name=${CLUSTER_NAME}" \
     -H 'Cache-Control: no-cache' \
     -H 'Content-Type: application/json' \
-    -sk
+    -iks
 }
 
 main

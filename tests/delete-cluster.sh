@@ -11,10 +11,10 @@ set -o pipefail
 
 main() {
   curl -X DELETE \
-    "https://${CLUSTER_API}:${CLUSTER_API_PORT}/api/v1/cluster?name=${CLUSTER_NAME}&provider=vmware&callback.url=http%3A%2F%2Fsomewhere&callback.request_id=35sdf3345sd" \
+    "https://${CLUSTER_API}:${CLUSTER_API_PORT}/api/v1/cluster?name=${CLUSTER_NAME}&provider=vmware&callback.url=http%3A%2F%2Funused&callback.request_id=1234" \
     -H 'Cache-Control: no-cache' \
     -H 'Content-Type: application/json' \
-    -sk
+    -iks
 }
 
 main

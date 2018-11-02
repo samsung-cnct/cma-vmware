@@ -55,7 +55,7 @@ DATA=$(
     "network_fabric": "canal"
   },
   "callback": {
-    "url": "https://example.org/unused",
+    "url": "unused",
     "request_id": "1234"
   }
 }
@@ -68,7 +68,7 @@ main() {
     -H 'Cache-Control: no-cache' \
     -H 'Content-Type: application/json' \
     -d "${DATA}" \
-    -sk
+    -iks
 }
 
 main
