@@ -20,43 +20,38 @@ DATA=$(
   "provider": {
     "name": "vmware",
     "k8s_version": "${K8S_VERSION}",
-    "vmware": {
-      "control_plane_nodes": [
-        {
-          "username": "${NODE_USER}",
-          "host": "${MASTER_IP}",
-          "port": 22,
-          "password": "${NODE_PASSWORD}",
-          "labels": [
-            {
-              "name": "master",
-              "value": "1"
-            }
-          ]
-        }
-      ],
-      "worker_nodes": [
-        {
-          "username": "${NODE_USER}",
-          "host": "${WORKER_1_IP}",
-          "port": 22,
-          "password": "${NODE_PASSWORD}",
-          "labels": [
-            {
-              "name": "worker",
-              "value": "1"
-            }
-          ]
-        }
-      ],
-      "api_endpoint": "172.10.10.1:443"
+    "control_plane_nodes": [
+      {
+        "username": "${NODE_USER}",
+        "host": "${MASTER_IP}",
+        "port": 22,
+        "password": "${NODE_PASSWORD}",
+        "labels": [
+          {
+            "name": "master",
+            "value": "1"
+          }
+        ]
+      }
+    ],
+    "worker_nodes": [
+      {
+        "username": "${NODE_USER}",
+        "host": "${WORKER_1_IP}",
+        "port": 22,
+        "password": "${NODE_PASSWORD}",
+        "labels": [
+          {
+            "name": "worker",
+            "value": "1"
+          }
+        ]
+      }
+    ],
+    "api_endpoint": ""
     },
     "high_availability": false,
     "network_fabric": "canal"
-  },
-  "callback": {
-    "url": "unused",
-    "request_id": "1234"
   }
 }
 JSON
