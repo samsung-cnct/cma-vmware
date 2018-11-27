@@ -22,6 +22,7 @@ const (
 	sshCmd     = "ssh"
 
 	maxApplyTimeout   = 30
+	maxDeleteTimeout  = 120
 	maxUpgradeTimeout = 540 // !? TODO: Determine a better value for this.
 	upgradeRetrySleep = 15
 )
@@ -218,7 +219,7 @@ func DeleteSSHCluster(clusterName string) error {
 
 	cmdName := kubectlCmd
 	cmdArgs := []string{"--help"}
-	cmdTimeout := time.Duration(maxApplyTimeout) * time.Second
+	cmdTimeout := time.Duration(maxDeleteTimeout) * time.Second
 
 	// Delete workers.
 	cmdArgs = []string{"delete", "machines", "-n", clusterName, "-l", "role=worker"}
