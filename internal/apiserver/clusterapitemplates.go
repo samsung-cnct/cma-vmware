@@ -32,6 +32,7 @@ metadata:
   namespace: {{ $.Name }}
   labels:
     controlPlaneVersion: {{ $.K8SVersion }}
+    role: controlPlane
 spec:
   providerConfig:
     value:
@@ -56,6 +57,8 @@ kind: Machine
 metadata:
   generateName: worker-
   namespace: {{ $.Name }}
+  labels:
+    role: worker
 spec:
   providerConfig:
     value:
@@ -93,6 +96,7 @@ metadata:
   namespace: {{ $.Name }}
   labels:
     controlPlaneVersion: {{ $.K8SVersion }}
+    role: controlPlane
 spec:
   providerConfig:
     value:
@@ -117,6 +121,8 @@ kind: Machine
 metadata:
   generateName: worker-
   namespace: {{ $.Name }}
+  labels:
+    role: worker
 spec:
   providerConfig:
     value:

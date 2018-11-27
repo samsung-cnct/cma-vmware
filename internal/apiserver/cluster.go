@@ -12,7 +12,11 @@ import (
 )
 
 func (s *Server) CreateCluster(ctx context.Context, in *pb.CreateClusterMsg) (*pb.CreateClusterReply, error) {
-	err := CreateSSHCluster(in)
+	clusterExists, err := ClusterExists(in.Name)
+	if clusterExists {
+		return nil, status.Error(codes.AlreadyExists, "cluster name already exists")
+	}
+	err = CreateSSHCluster(in)
 	if err != nil {
 		// TODO: Make this consistent with how the CMA does logging...
 		fmt.Printf("ERROR: CreateCluster, name %v, err %v\n", in.Name, err)
