@@ -220,8 +220,8 @@ func DeleteSSHCluster(clusterName string) error {
 	cmdArgs := []string{"--help"}
 	cmdTimeout := time.Duration(maxApplyTimeout) * time.Second
 
-	// Delete workers. Control plane nodes have a non-empty value for the label key controlPlaneVersion.
-	cmdArgs = []string{"delete", "machines", "-n", clusterName, "-l", `!controlPlaneVersion`}
+	// Delete workers.
+	cmdArgs = []string{"delete", "machines", "-n", clusterName, "-l", "role=worker"}
 	_, err := RunCommand(cmdName, cmdArgs, "", cmdTimeout)
 	if err != nil {
 		return err
@@ -234,7 +234,7 @@ func DeleteSSHCluster(clusterName string) error {
 	}
 
 	// Delete control plane.
-	cmdArgs = []string{"delete", "machines", "-n", clusterName, "-l", "controlPlaneVersion"}
+	cmdArgs = []string{"delete", "machines", "-n", clusterName, "-l", "role=controlPlane"}
 	_, err = RunCommand(cmdName, cmdArgs, "", cmdTimeout)
 	if err != nil {
 		return err
@@ -475,8 +475,8 @@ func kubeletVersionMatch(clusterName string, machineName string, expectedVersion
 // specified.  masters should be false when deleting workers.  masters should
 // be true when deleting masters.
 func machinesDeleted(clusterName string, masters bool) (bool, error) {
-	getMastersCmd := []string{"get", "machines", "-n", clusterName, "-l", "controlPlaneVersion"}
-	getWorkersCmd := []string{"get", "machines", "-n", clusterName, "-l", `!controlPlaneVersion`}
+	getMastersCmd := []string{"get", "machines", "-n", clusterName, "-l", "role=controlPlane"}
+	getWorkersCmd := []string{"get", "machines", "-n", clusterName, "-l", "role=worker"}
 	cmdName := kubectlCmd
 	cmdTimeout := time.Duration(maxApplyTimeout) * time.Second
 	var machinesFound bytes.Buffer
