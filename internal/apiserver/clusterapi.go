@@ -22,8 +22,8 @@ const (
 	sshCmd     = "ssh"
 
 	maxApplyTimeout   = 30
-	maxDeleteTimeout  = 120
-	maxUpgradeTimeout = 540 // !? TODO: Determine a better value for this.
+	maxDeleteTimeout  = 600
+	maxUpgradeTimeout = 600 // !? TODO: Determine a better value for this.
 	upgradeRetrySleep = 15
 )
 
