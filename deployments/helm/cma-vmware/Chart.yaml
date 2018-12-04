@@ -1,5 +1,5 @@
 name: cma-vmware
-version: 0.1.8
+version: 0.1.9
 description: The Cluster Manager API VMWare Helper
 keywords:
 - hybridstack
