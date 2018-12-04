@@ -41,6 +41,17 @@ type SSHMachineParams struct {
 	Host     string
 	Port     int32
 	Password string
+	Labels   map[string]string
+}
+
+func translateKubernetesLabels(in []*pb.KubernetesLabel) map[string]string {
+	labels := make(map[string]string)
+
+	for _, l := range in {
+		labels[l.Name] = l.Value
+	}
+
+	return labels
 }
 
 func TranslateCreateClusterMsg(in *pb.CreateClusterMsg) SSHClusterParams {
@@ -56,6 +67,7 @@ func TranslateCreateClusterMsg(in *pb.CreateClusterMsg) SSHClusterParams {
 			Password: m.Password,
 			Host:     m.Host,
 			Port:     m.Port,
+			Labels:   translateKubernetesLabels(m.Labels),
 		})
 	}
 
@@ -65,6 +77,7 @@ func TranslateCreateClusterMsg(in *pb.CreateClusterMsg) SSHClusterParams {
 			Password: m.Password,
 			Host:     m.Host,
 			Port:     m.Port,
+			Labels:   translateKubernetesLabels(m.Labels),
 		})
 	}
 
@@ -83,6 +96,7 @@ func TranslateAdjustClusterMsg(in *pb.AdjustClusterMsg, version string) SSHClust
 			Password: m.Password,
 			Host:     m.Host,
 			Port:     m.Port,
+			Labels:   translateKubernetesLabels(m.Labels),
 		})
 	}
 
