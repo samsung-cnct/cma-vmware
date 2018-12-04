@@ -84,10 +84,12 @@ func TranslateCreateClusterMsg(in *pb.CreateClusterMsg) SSHClusterParams {
 	return cluster
 }
 
-func TranslateAdjustClusterMsg(in *pb.AdjustClusterMsg, version string) SSHClusterParams {
+func TranslateAdjustClusterMsg(in *pb.AdjustClusterMsg, version, publicKey, privateKey string) SSHClusterParams {
 	cluster := SSHClusterParams{
 		Name:       in.Name,
 		K8SVersion: version,
+		PublicKey:  publicKey,
+		PrivateKey: privateKey,
 	}
 
 	for _, m := range in.AddNodes {
@@ -119,7 +121,7 @@ func RenderClusterManifests(cluster SSHClusterParams) (string, error) {
 	return string(tmplBuf.Bytes()), nil
 }
 
-func PrepareNodes(cluster *SSHClusterParams) error {
+func PrepareNodesCreate(cluster *SSHClusterParams) error {
 	private, public, err := util.GenerateSSHKeyPair()
 	if err != nil {
 		return err
@@ -137,6 +139,26 @@ func PrepareNodes(cluster *SSHClusterParams) error {
 
 	for _, node := range cluster.WorkerNodes {
 		err := setupPrivateKeyAccess(node, private, public)
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func PrepareNodesAdjust(cluster *SSHClusterParams) error {
+	publicKey, err := base64.StdEncoding.DecodeString(cluster.PublicKey)
+	if err != nil {
+		return err
+	}
+	privateKey, err := base64.StdEncoding.DecodeString(cluster.PrivateKey)
+	if err != nil {
+		return err
+	}
+
+	for _, node := range cluster.WorkerNodes {
+		err := setupPrivateKeyAccess(node, string(privateKey), string(publicKey))
 		if err != nil {
 			return err
 		}
@@ -196,11 +218,9 @@ func RenderMachineManifests(cluster SSHClusterParams) (string, error) {
 
 func CreateSSHCluster(in *pb.CreateClusterMsg) error {
 	cluster := TranslateCreateClusterMsg(in)
-	if cluster.PrivateKey == "" {
-		err := PrepareNodes(&cluster)
-		if err != nil {
-			return err
-		}
+	err := PrepareNodesCreate(&cluster)
+	if err != nil {
+		return err
 	}
 
 	manifests, err := RenderClusterManifests(cluster)
@@ -373,8 +393,15 @@ func AdjustSSHCluster(in *pb.AdjustClusterMsg) error {
 	}
 	version := uniqueVersions[0]
 
-	// Generate manifests for new machines.
-	cluster := TranslateAdjustClusterMsg(in, version)
+	// Generate manifests for new machines and create them.
+	publicKey, privateKey, err := getSSHKeys(in.Name)
+	if err != nil {
+		return err
+	}
+	cluster := TranslateAdjustClusterMsg(in, version, publicKey, privateKey)
+	if err := PrepareNodesAdjust(&cluster); err != nil {
+		return err
+	}
 	manifests, err := RenderMachineManifests(cluster)
 	if err != nil {
 		return err
@@ -403,6 +430,26 @@ func AdjustSSHCluster(in *pb.AdjustClusterMsg) error {
 	}
 
 	return nil
+}
+
+func getSSHKeys(clusterName string) (string, string, error) {
+	cmdName := kubectlCmd
+	cmdArgs := []string{"--help"}
+	cmdTimeout := time.Duration(maxApplyTimeout) * time.Second
+
+	cmdArgs = []string{"get", "secret", "-n", clusterName, "cluster-private-key", "-o", "jsonpath={.data.publicKey}"}
+	publicKeyBuffer, err := RunCommand(cmdName, cmdArgs, "", cmdTimeout)
+	if err != nil {
+		return "", "", err
+	}
+
+	cmdArgs = []string{"get", "secret", "-n", clusterName, "cluster-private-key", "-o", "jsonpath={.data.private-key}"}
+	privateKeyBuffer, err := RunCommand(cmdName, cmdArgs, "", cmdTimeout)
+	if err != nil {
+		return "", "", err
+	}
+
+	return string(publicKeyBuffer.Bytes()), string(privateKeyBuffer.Bytes()), nil
 }
 
 func patchMachineVersions(clusterName, machineName, controlPlaneVersion, kubeletVersion string) error {
