@@ -532,6 +532,29 @@ func waitForMachinesDeleted(clusterName string, masters bool) error {
 	return nil
 }
 
+func allNodesReady(kubeconfigfn string) (bool, error) {
+	cmdName := kubectlCmd
+	cmdTimeout := time.Duration(maxApplyTimeout) * time.Second
+	getNodesCmdArgs := []string{"get", "nodes", "-o", "wide", "--kubeconfig", kubeconfigfn}
+	getNodesBytes, err := RunCommand(cmdName, getNodesCmdArgs, "", cmdTimeout)
+	if err != nil {
+		fmt.Println("getNodesCmd RunCommand error")
+		return false, err
+	}
+	for _, line := range strings.Split(string(getNodesBytes.Bytes()), "\n") {
+		if strings.Contains(line, "NotReady") {
+			fmt.Println("Cluster is NotReady")
+			return false, errors.New("Cluster is NotReady")
+		}
+		if strings.Contains(line, "SchedulingDisabled") {
+			fmt.Println("Cluster is NotReady due to SchedulingDisabled")
+			return false, errors.New("Cluster is NotReady due to SchedulingDisabled")
+		}
+	}
+
+	return true, nil
+}
+
 func ClusterExists(clusterName string) (bool, error) {
 	cmdName := kubectlCmd
 	cmdTimeout := time.Duration(maxApplyTimeout) * time.Second
@@ -584,11 +607,21 @@ func GetSSHClusterStatus(clusterName string, kubeconfig []byte) (pb.ClusterStatu
 			}
 			if !matchingVersions {
 				clusterStatus = pb.ClusterStatus_RECONCILING
-				break
+				return clusterStatus, nil
 			}
 		}
+	}
+	clusterStatus = pb.ClusterStatus_RECONCILING
+	// running versions are correct for all nodes, check nodes are Ready
+	ready, err := allNodesReady(kubeconfigfn)
+	if err != nil {
+		fmt.Printf("ERROR: GetSSHClusterStatus, allNodesReady error %v\n", err)
+	}
+	if ready {
+		fmt.Printf("INFO: all nodes are Ready for cluster %s", clusterName)
 		clusterStatus = pb.ClusterStatus_RUNNING
 	}
+
 	return clusterStatus, nil
 }
 
