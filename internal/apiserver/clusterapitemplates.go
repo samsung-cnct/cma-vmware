@@ -104,6 +104,9 @@ metadata:
   labels:
     controlPlaneVersion: {{ $.K8SVersion }}
     role: controlPlane
+{{- range $key, $value := .Labels }}
+    "{{ $key }}": "{{ $value }}"
+{{- end }}
 spec:
   providerConfig:
     value:
@@ -130,6 +133,9 @@ metadata:
   namespace: {{ $.Name }}
   labels:
     role: worker
+{{- range $key, $value := .Labels }}
+    "{{ $key }}": "{{ $value }}"
+{{- end }}
 spec:
   providerConfig:
     value:
