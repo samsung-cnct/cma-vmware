@@ -74,11 +74,10 @@ func (s *Server) DeleteCluster(ctx context.Context, in *pb.DeleteClusterMsg) (*p
 	if !clusterExists {
 		return nil, status.Error(codes.NotFound, err.Error())
 	}
-	err = DeleteSSHCluster(in.Name)
-	if err != nil {
-		fmt.Printf("ERROR: DeleteCluster, %v, err %v\n", in.Name, err)
-		return nil, status.Error(codes.Internal, err.Error())
-	}
+
+	go func() {
+		_ = DeleteSSHCluster(in.Name)
+	}()
 
 	return &pb.DeleteClusterReply{Ok: true, Status: "Deleted"}, nil
 }
@@ -154,11 +153,11 @@ func (s *Server) UpgradeCluster(ctx context.Context, in *pb.UpgradeClusterMsg) (
 		fmt.Printf("INFO: UpgradeCluster unable to getKubeconfig secret for cluster %s\n", in.Name)
 		return nil, status.Error(codes.NotFound, err.Error())
 	}
-	err = UpgradeSSHCluster(in.Name, in.Version, kubeconfigBytes)
-	if err != nil {
-		fmt.Printf("ERROR: UpgradeCluster, %v, err %v\n", in.Name, err)
-		return nil, status.Error(codes.Internal, err.Error())
-	}
+
+	go func() {
+		_ = UpgradeSSHCluster(in.Name, in.Version, kubeconfigBytes)
+	}()
+
 	return &pb.UpgradeClusterReply{
 		Ok: true,
 	}, nil
